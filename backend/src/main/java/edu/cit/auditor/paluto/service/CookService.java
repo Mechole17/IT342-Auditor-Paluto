@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class CookService {
@@ -24,7 +26,8 @@ public class CookService {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .address(dto.getAddress())
                 .role("COOK")
-
+                .auth_provider("LOCAL")
+                .created_at(LocalDateTime.now())
                 //COOK attr
                 .hourly_rate(dto.getHourly_rate())
                 .years_xp(dto.getYears_xp())

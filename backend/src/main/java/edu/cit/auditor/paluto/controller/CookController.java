@@ -1,9 +1,12 @@
 package edu.cit.auditor.paluto.controller;
 
 import edu.cit.auditor.paluto.dto.CookRegistrationDTO;
+import edu.cit.auditor.paluto.dto.LoginDataResponseDTO;
 import edu.cit.auditor.paluto.entity.Cook;
 import edu.cit.auditor.paluto.response.ApiResponse;
 import edu.cit.auditor.paluto.service.CookService;
+import edu.cit.auditor.paluto.service.JwtService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +20,21 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class CookController {
     private final CookService cookService;
+    private final JwtService jwtService; // Add this for token generation
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Cook>> registerCook(@RequestBody CookRegistrationDTO dto){
+    public ResponseEntity<ApiResponse<LoginDataResponseDTO>> registerCook(@Valid @RequestBody CookRegistrationDTO dto){
         Cook registeredCook = cookService.registerCook(dto);
 
-        ApiResponse<Cook> response = ApiResponse.<Cook>builder()
+        // Generate token immediately for Auto-Login
+        String token = jwtService.generateToken(registeredCook);
+
+        // Wrap user and token together
+        LoginDataResponseDTO authData = new LoginDataResponseDTO(registeredCook,token,null);
+
+        ApiResponse<LoginDataResponseDTO> response = ApiResponse.<LoginDataResponseDTO>builder()
                 .success(true)
-                .data(registeredCook)
+                .data(authData)
                 .error(null)
                 .timestamp(LocalDateTime.now().toString())
                 .build();
