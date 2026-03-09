@@ -26,6 +26,9 @@ public class CustomerService {
 
     @Transactional
     public Customer registerCustomer(CustomerRegistrationDTO dto) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("Email address is already in use.");
+        }
         Customer newCustomer = Customer.builder()
                 // USER attr
                 .firstname(dto.getFirstname())
