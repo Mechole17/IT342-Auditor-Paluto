@@ -5,6 +5,7 @@ import edu.cit.auditor.paluto.dto.LoginRequestDTO;
 import edu.cit.auditor.paluto.response.ApiError;
 import edu.cit.auditor.paluto.response.ApiResponse;
 import edu.cit.auditor.paluto.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginDataResponseDTO>> login(@RequestBody LoginRequestDTO request) {
+    public ResponseEntity<ApiResponse<LoginDataResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request) {
         try {
             LoginDataResponseDTO data = authService.authenticate(request);
 
