@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Ramen from '../asset/ramen.png';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
-const CookRegister = () => {
+export default function CookRegister() {
+    const {login} = useAuth();
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     
-    // State matching your CookRegistrationRequest DTO
     const [formData, setFormData] = useState({
         firstname: '',
         lastname: '',
@@ -16,9 +18,8 @@ const CookRegister = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        // Cook specific fields
-        hourlyRate: '',
-        yearsExperience: '',
+        hourly_rate: '',
+        years_xp: '',
         bio: ''
     });
 
@@ -26,33 +27,64 @@ const CookRegister = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Logical Validation for Step 1
-    const handleNext = () => {
-        if (!formData.email || !formData.password || !formData.firstname) {
-            setError("Please fill in all required fields.");
-            return;
+    // --- ARCHITECT'S VALIDATION LOGIC ---
+    const validateStepOne = () => {
+        const { email, password, confirmPassword, firstname, lastname, address } = formData;
+        
+        if (!email || !password || !firstname || !lastname || !address) {
+            return "Please fill in all required fields.";
         }
-        if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match.");
+
+        // Email Regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) return "Please enter a valid email address.";
+
+        // Password Complexity: Min 8, 1 Upper, 1 Lower, 1 Number, 1 Special
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return "Password must be at least 8 characters with uppercase, lowercase, number, and special character.";
+        }
+
+        if (password !== confirmPassword) return "Passwords do not match.";
+        
+        return null;
+    };
+
+    const handleNext = () => {
+        const validationError = validateStepOne();
+        if (validationError) {
+            setError(validationError);
             return;
         }
         setError(null);
         setStep(2);
     };
 
-    // Final Submission to Spring Boot
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Final numeric check (Min 0)
+        if (formData.hourly_rate < 0 || formData.years_xp < 0) {
+            setError("Hourly rate and experience cannot be negative.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
-            // Note: We send the whole object, Spring Boot DTO will ignore 'confirmPassword'
             const response = await axios.post('http://localhost:8080/api/cook/register', formData);
-            
             if (response.data.success) {
-                alert("Registration Successful! Redirecting to login...");
-                navigate('/'); // Redirect to landing to trigger the Login Modal
+                // 1. Extract the data (token and user object)
+                const { accessToken, user } = response.data.data;
+
+                // 2. Trigger the Global Login (this saves to localStorage & state)
+                login(user, accessToken);
+
+                // 3. Redirect directly to their dashboard (Role-Aware)
+                if (user.role === 'COOK') navigate('/cook/home');
+                console.log(response);
+                alert("Account created successfully! Welcome to PALUTO! You are now logged in as a cook.");
             }
         } catch (err) {
             setError(err.response?.data?.error?.message || "Server Error: Could not register cook.");
@@ -61,69 +93,77 @@ const CookRegister = () => {
         }
     };
 
-    // --- Dynamic Inline Styles ---
     const styles = {
         container: { display: 'flex', height: '100vh', width: '100vw', fontFamily: 'Arial, sans-serif' },
         leftSide: { flex: 1, backgroundColor: '#d10b04', display: 'flex', flexDirection: 'column', padding: '40px', position: 'relative' },
-        logo: { fontSize: '32px', fontWeight: '900', color: '#000', marginBottom: '50px' },
-        foodImg: { width: '85%', margin: 'auto', borderRadius: '50%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' },
+        logo: { fontSize: '32px', fontWeight: '900', color: '#000', marginBottom: '50px', cursor: 'pointer' },
+        foodImg: { width: '85%', margin: 'auto' },
         rightSide: { flex: 1, backgroundColor: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 80px' },
-        input: { width: '100%', padding: '16px', margin: '10px 0', borderRadius: '12px', border: '1.5px solid #000', fontSize: '16px', outline: 'none' },
-        button: { backgroundColor: '#0A0A1F', color: '#fff', padding: '16px 80px', borderRadius: '15px', fontWeight: 'bold', fontSize: '18px', border: 'none', alignSelf: 'flex-end', marginTop: '40px', cursor: 'pointer', opacity: loading ? 0.7 : 1 },
-        errorMsg: { color: 'red', fontWeight: 'bold', marginBottom: '10px' }
+        input: { width: '100%', padding: '12px', margin: '8px 0', borderRadius: '12px', border: '1.5px solid #7b7a7a', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
+        btnContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '30px' },
+        button: { backgroundColor: '#0A0A1F', color: '#fff', padding: '16px 50px', borderRadius: '15px', fontWeight: 'bold', fontSize: '18px', border: 'none', cursor: 'pointer' },
+        backLink: { color: '#666', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' },
+        footerLink: { marginTop: '20px', fontSize: '14px', color: '#333', cursor: 'pointer', textAlign: 'center' },
+        errorMsg: { color: '#d10b04', fontWeight: 'bold', marginBottom: '10px', fontSize: '14px' }
     };
 
     return (
         <div style={styles.container}>
             <div style={styles.leftSide}>
-                <div style={styles.logo}>PALUTO</div>
-                {/* Image should represent a professional cook or kitchen */}
-                <img src="/cook-avatar-round.png" alt="Cook Registration" style={styles.foodImg} />
+                <div style={styles.logo} onClick={() => navigate('/')}>PALUTO</div>
+                <img src={Ramen} alt="Cook Registration" style={styles.foodImg} />
             </div>
 
             <div style={styles.rightSide}>
-                <h1 style={{fontSize: '42px', fontWeight: 'bold'}}>{step === 1 ? "Join us!" : "Profile Details"}</h1>
+                <h1 style={{fontSize: '42px', fontWeight: 'bold'}}>{step === 1 ? "Join as a Cook" : "Profile Details"}</h1>
                 <p style={{color: '#666', marginBottom: '20px'}}>Step {step} of 2</p>
 
                 {error && <div style={styles.errorMsg}>{error}</div>}
                 
                 <form onSubmit={step === 2 ? handleSubmit : (e) => e.preventDefault()}>
                     {step === 1 ? (
-                        /* STEP 1: ACCOUNT DATA */
                         <>
-                            <div style={{ display: 'flex', gap: '20px' }}>
-                                <input name="firstname" placeholder="first name" style={styles.input} onChange={handleChange} required />
-                                <input name="lastname" placeholder="last name" style={styles.input} onChange={handleChange} required />
+                            <div style={{ display: 'flex', gap: '15px' }}>
+                                <input name="firstname" placeholder="first name" style={styles.input} onChange={handleChange} value={formData.firstname} required />
+                                <input name="lastname" placeholder="last name" style={styles.input} onChange={handleChange} value={formData.lastname} required />
                             </div>
-                            <input name="address" placeholder="home address" style={styles.input} onChange={handleChange} required />
-                            <input name="email" type="email" placeholder="email" style={styles.input} onChange={handleChange} required />
-                            <input name="password" type="password" placeholder="password" style={styles.input} onChange={handleChange} required />
-                            <input name="confirmPassword" type="password" placeholder="confirm password" style={styles.input} onChange={handleChange} required />
+                            <input name="address" placeholder="home address" style={styles.input} onChange={handleChange} value={formData.address} required />
+                            <input name="email" type="email" placeholder="email" style={styles.input} onChange={handleChange} value={formData.email} required />
+                            <input name="password" type="password" placeholder="password" style={styles.input} onChange={handleChange} value={formData.password} required />
+                            <input name="confirmPassword" type="password" placeholder="confirm password" style={styles.input} onChange={handleChange} value={formData.confirmPassword} required />
                             
-                            <button type="button" style={styles.button} onClick={handleNext}>next</button>
+                            <div style={styles.btnContainer}>
+                                <span style={styles.backLink} onClick={() => navigate('/')}>Cancel</span>
+                                <button type="button" style={styles.button} onClick={handleNext}>Next</button>
+                            </div>
                         </>
                     ) : (
-                        /* STEP 2: PROFESSIONAL DATA */
                         <>
-                            <input name="hourlyRate" type="number" placeholder="hourly rate (₱)" style={styles.input} onChange={handleChange} required />
-                            <input name="yearsExperience" type="number" placeholder="years of experience" style={styles.input} onChange={handleChange} required />
+                            <label style={{fontSize: '14px', color: '#666'}}>Hourly Rate (₱)</label>
+                            <input name="hourly_rate" type="number" min="0" placeholder="0.00" style={styles.input} onChange={handleChange} value={formData.hourly_rate} required />
+                            
+                            <label style={{fontSize: '14px', color: '#666'}}>Years of Experience</label>
+                            <input name="years_xp" type="number" min="0" placeholder="0" style={styles.input} onChange={handleChange} value={formData.years_xp} required />
+                            
                             <textarea 
                                 name="bio" 
-                                placeholder="tell us about your cooking style (bio)" 
-                                style={{ ...styles.input, height: '120px', resize: 'none' }} 
+                                placeholder="Tell us about your culinary expertise..." 
+                                style={{ ...styles.input, height: '100px', resize: 'none' }} 
                                 onChange={handleChange} 
+                                value={formData.bio}
                                 required
                             />
                             
-                            <button type="submit" style={styles.button} disabled={loading}>
-                                {loading ? "Registering..." : "sign in"}
-                            </button>
+                            <div style={styles.btnContainer}>
+                                <span style={styles.backLink} onClick={() => setStep(1)}>Back</span>
+                                <button type="submit" style={{...styles.button, opacity: loading ? 0.7 : 1}} disabled={loading}>
+                                    {loading ? "Registering..." : "Complete"}
+                                </button>
+                            </div>
                         </>
                     )}
                 </form>
             </div>
         </div>
     );
-};
-
-export default CookRegister;
+}

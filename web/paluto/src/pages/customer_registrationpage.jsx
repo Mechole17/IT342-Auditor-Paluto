@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Ensure you've run: npm install axios
+import Ramen from '../asset/ramen.png';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
-const CustomerRegister = () => {
+export default function CustomerRegister() {
+    const {login} = useAuth();
     const navigate = useNavigate();
     
-    // 1. State to manage form data
     const [formData, setFormData] = useState({
         firstname: '',
         lastname: '',
@@ -15,7 +17,6 @@ const CustomerRegister = () => {
         confirmPassword: ''
     });
 
-    // 2. State for feedback (Errors/Loading)
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -23,21 +24,45 @@ const CustomerRegister = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // 3. Submission Logic
+    // --- ARCHITECT'S VALIDATION LOGIC ---
+    const validateForm = () => {
+        const { email, password, confirmPassword } = formData;
+
+        // 1. Email Regex (Standard RFC 5322)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return "Please enter a valid email address.";
+        }
+
+        // 2. Password Complexity Regex
+        // Min 8 chars, 1 Upper, 1 Lower, 1 Number, 1 Special Char
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.";
+        }
+
+        // 3. Confirm Password Match
+        if (password !== confirmPassword) {
+            return "Passwords do not match!";
+        }
+
+        return null; // No errors
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
 
-        // --- Basic Validation ---
-        if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match!");
+        // Run validations
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
         setIsLoading(true);
 
         try {
-            // Match your Spring Boot endpoint
             const response = await axios.post('http://localhost:8080/api/customer/register', {
                 firstname: formData.firstname,
                 lastname: formData.lastname,
@@ -47,11 +72,18 @@ const CustomerRegister = () => {
             });
 
             if (response.data.success) {
-                alert("Registration Successful!");
-                navigate('/'); // Redirect to landing page to sign in
+                // 1. Extract the data (token and user object)
+                const { accessToken, user } = response.data.data;
+
+                // 2. Trigger the Global Login (this saves to localStorage & state)
+                login(user, accessToken);
+
+                // 3. Redirect directly to their dashboard (Role-Aware)
+                if (user.role === 'CUSTOMER') navigate('/customer/home');
+                console.log(response);
+                alert("Account created successfully! Welcome to PALUTO! You are now logged in as a customer.");
             }
         } catch (err) {
-            // Handle Backend Errors (e.g., Email already exists)
             const backendError = err.response?.data?.error?.message || "Registration failed. Try again.";
             setError(backendError);
         } finally {
@@ -59,78 +91,43 @@ const CustomerRegister = () => {
         }
     };
 
+    // --- STYLES (Keep your existing styles, just showing the component structure) ---
     const styles = {
         container: { display: 'flex', height: '100vh', width: '100vw', fontFamily: 'Arial, sans-serif', overflow: 'hidden' },
-        leftSide: { 
-            flex: 1, 
-            backgroundColor: '#ecb92a', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            padding: '40px',
-            position: 'relative'
-        },
+        leftSide: { flex: 1, backgroundColor: '#ecb92a', display: 'flex', flexDirection: 'column', padding: '40px', position: 'relative' },
         logo: { fontSize: '32px', fontWeight: '900', color: '#000', marginBottom: '50px', cursor: 'pointer' },
-        foodImg: { 
-            width: '85%', 
-            margin: 'auto', 
-            borderRadius: '50%',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)' 
-        },
-        rightSide: { 
-            flex: 1, 
-            backgroundColor: '#fff', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            justifyContent: 'center', 
-            padding: '0 80px' 
-        },
+        foodImg: { width: '85%', margin: 'auto' },
+        rightSide: { flex: 1, backgroundColor: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 80px' },
         title: { fontSize: '42px', fontWeight: 'bold', marginBottom: '10px' },
-        errorTxt: { color: '#c40303', fontWeight: 'bold', marginBottom: '15px' },
-        inputGroup: { display: 'flex', gap: '20px' },
-        input: { 
-            width: '100%', 
-            padding: '16px', 
-            margin: '10px 0', 
-            borderRadius: '12px', 
-            border: '1.5px solid #000', 
-            fontSize: '16px',
-            outline: 'none'
-        },
-        loginLink: { 
-            textAlign: 'right', 
-            marginTop: '15px', 
-            fontSize: '14px', 
-            fontWeight: '600', 
-            cursor: 'pointer' 
-        },
-        nextBtn: { 
-            backgroundColor: isLoading ? '#555' : '#0A0A1F', 
-            color: '#fff', 
-            padding: '16px 80px', 
-            borderRadius: '15px', 
+        errorTxt: { 
+            color: '#c40303', 
             fontWeight: 'bold', 
-            fontSize: '18px',
-            border: 'none',
-            alignSelf: 'flex-end', 
-            marginTop: '40px', 
-            cursor: isLoading ? 'not-allowed' : 'pointer' 
-        }
+            marginBottom: '15px', 
+            fontSize: '13px',
+            backgroundColor: '#fee',
+            padding: '10px',
+            borderRadius: '8px',
+            border: '1px solid #c40303'
+        },
+        inputGroup: { display: 'flex', gap: '20px' },
+        input: { width: '100%', padding: '12px', margin: '8px 0', borderRadius: '12px', border: '1.5px solid #7b7a7a', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
+        loginLink: { textAlign: 'right', marginTop: '15px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+        loginBtn: { backgroundColor: '#0A0A1F', color: '#fff', padding: '16px 80px', borderRadius: '15px', fontWeight: 'bold', fontSize: '18px', border: 'none', alignSelf: 'center', marginTop: '30px', cursor: 'pointer', opacity: isLoading ? 0.7 : 1 }
     };
 
     return (
         <div style={styles.container}>
             <div style={styles.leftSide}>
                 <div style={styles.logo} onClick={() => navigate('/')}>PALUTO</div>
-                <img src="/noodles-bowl.png" alt="Paluto Food" style={styles.foodImg} />
+                <img src={Ramen} alt="Paluto Food" style={styles.foodImg} />
             </div>
 
             <div style={styles.rightSide}>
                 <h1 style={styles.title}>Join Us</h1>
                 
-                {/* Error Feedback */}
                 {error && <div style={styles.errorTxt}>{error}</div>}
                 
-                <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column'}}>
+                <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', width: '80%', alignSelf: 'center'}}>
                     <div style={styles.inputGroup}>
                         <input name="firstname" type="text" placeholder="first name" style={styles.input} onChange={handleChange} required />
                         <input name="lastname" type="text" placeholder="last name" style={styles.input} onChange={handleChange} required />
@@ -145,13 +142,11 @@ const CustomerRegister = () => {
                         Already have an account?
                     </div>
                     
-                    <button type="submit" style={styles.nextBtn} disabled={isLoading}>
+                    <button type="submit" style={styles.loginBtn} disabled={isLoading}>
                         {isLoading ? "sending..." : "sign in"}
                     </button>
                 </form>
             </div>
         </div>
     );
-};
-
-export default CustomerRegister;
+}
