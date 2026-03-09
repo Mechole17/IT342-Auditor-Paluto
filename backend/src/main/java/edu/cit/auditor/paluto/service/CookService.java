@@ -3,6 +3,7 @@ package edu.cit.auditor.paluto.service;
 import edu.cit.auditor.paluto.dto.CookRegistrationDTO;
 import edu.cit.auditor.paluto.entity.Cook;
 import edu.cit.auditor.paluto.repository.CookRepository;
+import edu.cit.auditor.paluto.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,11 +14,15 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class CookService {
+    private final UserRepository userRepository;
     private final CookRepository cookRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public Cook registerCook(CookRegistrationDTO dto){
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("Email address is already in use.");
+        }
         Cook newCook = Cook.builder()
                 //USER attr
                 .firstname(dto.getFirstname())
