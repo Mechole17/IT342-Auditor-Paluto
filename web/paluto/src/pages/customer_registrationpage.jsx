@@ -84,7 +84,7 @@ export default function CustomerRegister() {
                 alert("Account created successfully! Welcome to PALUTO! You are now logged in as a customer.");
             }
         } catch (err) {
-            const backendError = err.response?.data?.error?.message || "Registration failed. Try again.";
+            const backendError = err.response?.data?.error?.message || "Email already in use.";
             setError(backendError);
         } finally {
             setIsLoading(false);

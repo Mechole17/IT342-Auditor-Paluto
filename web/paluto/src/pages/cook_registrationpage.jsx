@@ -87,7 +87,8 @@ export default function CookRegister() {
                 alert("Account created successfully! Welcome to PALUTO! You are now logged in as a cook.");
             }
         } catch (err) {
-            setError(err.response?.data?.error?.message || "Server Error: Could not register cook.");
+            console.log(err);
+            setError(err.response?.data?.error?.message || "Email already in use.");
         } finally {
             setLoading(false);
         }
