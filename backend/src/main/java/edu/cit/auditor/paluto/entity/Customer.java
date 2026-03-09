@@ -7,6 +7,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Setter
 @Getter
+@AllArgsConstructor
 @SuperBuilder
 public class Customer extends User{
 }

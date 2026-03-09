@@ -12,10 +12,3 @@ public class ApiResponse<T> {
     private String timestamp;
 }
 
-@Data
-@Builder
-class ApiError{
-    private String code;
-    private String message;
-    private Object details;
-}

@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/cook/register").permitAll() // Open the door for registration
                         .requestMatchers("/api/customer/register").permitAll() // Open the door for registration
+                        .requestMatchers("api/auth/login").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();
