@@ -24,12 +24,15 @@ export default function LoginModal({ onClose }) {
                 onClose();
                 if (user.role === 'CUSTOMER') {
                     alert("Customer Login Successful! Redirecting...");
+                    navigate('/customer/home');
                 }
                 else if (user.role === 'COOK') {
                     alert("Cook Login Successful! Redirecting...");
+                    navigate('/cook/home');
                 }
                 else if (user.role === 'ADMIN') {
                     alert("Admin Login Successful! Redirecting...");
+                    navigate('/admin/home');
                 }
                
             }
