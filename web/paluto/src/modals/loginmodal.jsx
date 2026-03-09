@@ -34,7 +34,7 @@ export default function LoginModal({ onClose }) {
                
             }
         } catch (err) {
-            setError(err.response?.data?.error?.message || "Invalid credentials.");
+            setError("Invalid credentials.");
         } finally {
             setIsLoading(false);
         }
