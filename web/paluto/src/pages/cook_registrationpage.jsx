@@ -35,33 +35,36 @@ export default function CookRegister() {
             return "Please fill in all required fields.";
         }
 
-        // Email Regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) return "Please enter a valid email address.";
 
-        // Password Complexity: Min 8, 1 Upper, 1 Lower, 1 Number, 1 Special
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passwordRegex.test(password)) {
             return "Password must be at least 8 characters with uppercase, lowercase, number, and special character.";
         }
 
-        if (password !== confirmPassword) return "Passwords do not match.";
+        if (password !== confirmPassword) {
+            return "Passwords do not match.";
+        }
         
         return null;
     };
 
     const handleNext = () => {
         const validationError = validateStepOne();
+        
         if (validationError) {
+            // Clear passwords HERE, not inside validateStepOne
+            setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
             setError(validationError);
             return;
         }
+
         setError(null);
         setStep(2);
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
         
         // Final numeric check (Min 0)
         if (formData.hourly_rate < 0 || formData.years_xp < 0) {
@@ -87,8 +90,27 @@ export default function CookRegister() {
                 alert("Account created successfully! Welcome to PALUTO! You are now logged in as a cook.");
             }
         } catch (err) {
-            console.log(err);
-            setError(err.response?.data?.error?.message || "Email already in use.");
+            if (err.response && err.response.data) {
+                const apiResponse = err.response.data;
+
+                // 2. Access the nested message: apiResponse.error.message
+                // This will grab "The email is already in use" from your service
+                const errorMessage = apiResponse.error?.message || "Registration failed.";
+                
+                setError(errorMessage);
+                setStep(1); // Go back to step 1 to fix issues
+                // Architect's Tip: Clear sensitive fields on error, but keep the email 
+                // so the user can see what they typed wrong.
+                setFormData(prev => ({
+                    ...prev,
+                    password: '',
+                    confirmPassword: ''
+                }));
+                
+            } else {
+                // 3. Fallback for network issues (server down, etc.)
+                setError("Unable to connect to the server.");
+            }
         } finally {
             setLoading(false);
         }
@@ -121,7 +143,7 @@ export default function CookRegister() {
 
                 {error && <div style={styles.errorMsg}>{error}</div>}
                 
-                <form onSubmit={step === 2 ? handleSubmit : (e) => e.preventDefault()}>
+                <form onSubmit={(e) => e.preventDefault()}>
                     {step === 1 ? (
                         <>
                             <div style={{ display: 'flex', gap: '15px' }}>
@@ -157,8 +179,8 @@ export default function CookRegister() {
                             
                             <div style={styles.btnContainer}>
                                 <span style={styles.backLink} onClick={() => setStep(1)}>Back</span>
-                                <button type="submit" style={{...styles.button, opacity: loading ? 0.7 : 1}} disabled={loading}>
-                                    {loading ? "Registering..." : "Complete"}
+                                <button type="button" style={{...styles.button, opacity: loading ? 0.7 : 1}} onClick={handleSubmit} disabled={loading}>
+                                    {loading ? "Signing up..." : "Complete"}
                                 </button>
                             </div>
                         </>

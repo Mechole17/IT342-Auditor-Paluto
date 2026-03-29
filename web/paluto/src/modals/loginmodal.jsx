@@ -21,6 +21,7 @@ export default function LoginModal({ onClose }) {
             if (response.data.success) {
                 const { accessToken, user } = response.data.data;
                 login(user, accessToken); // Updates global state
+                console.log(response);
                 onClose();
                 if (user.role === 'CUSTOMER') {
                     alert("Customer Login Successful! Redirecting...");
@@ -37,7 +38,18 @@ export default function LoginModal({ onClose }) {
                
             }
         } catch (err) {
-            setError("Invalid credentials.");
+            // 1. Check if the error is from the backend (401 Unauthorized)
+            if (err.response && err.response.data) {
+                const apiResponse = err.response.data;
+
+                // 2. Access the nested message: data.error.message
+                const errorMessage = apiResponse.error?.message || "Login failed. Please try again.";
+                setError(errorMessage);
+                setPassword('');
+            } else {
+                // 3. Fallback for network issues (server down, etc.)
+                setError("Unable to connect to the server.");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -53,7 +65,7 @@ export default function LoginModal({ onClose }) {
                     <input type="email" placeholder="email" style={modalStyles.input} value={email} onChange={(e) => setEmail(e.target.value)} required />
                     <input type="password" placeholder="password" style={modalStyles.input} value={password} onChange={(e) => setPassword(e.target.value)} required />
                     <button type="submit" disabled={isLoading} style={modalStyles.submitBtn}>
-                        {isLoading ? "Checking..." : "sign in"}
+                        {isLoading ? "Signing in..." : "sign in"}
                     </button>
                 </form>
                 <div style={{margin: '20px 0'}}>or sign in with</div>

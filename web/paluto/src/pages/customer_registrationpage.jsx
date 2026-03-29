@@ -84,8 +84,27 @@ export default function CustomerRegister() {
                 alert("Account created successfully! Welcome to PALUTO! You are now logged in as a customer.");
             }
         } catch (err) {
-            const backendError = err.response?.data?.error?.message || "Email already in use.";
-            setError(backendError);
+            if (err.response && err.response.data) {
+                const apiResponse = err.response.data;
+
+                // 2. Access the nested message: apiResponse.error.message
+                // This will grab "The email is already in use" from your service
+                const errorMessage = apiResponse.error?.message || "Registration failed.";
+                
+                setError(errorMessage);
+                
+                // Architect's Tip: Clear sensitive fields on error, but keep the email 
+                // so the user can see what they typed wrong.
+                setFormData(prev => ({
+                    ...prev,
+                    password: '',
+                    confirmPassword: ''
+                }));
+                
+            } else {
+                // 3. Fallback for network issues (server down, etc.)
+                setError("Unable to connect to the server.");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -104,10 +123,7 @@ export default function CustomerRegister() {
             fontWeight: 'bold', 
             marginBottom: '15px', 
             fontSize: '13px',
-            backgroundColor: '#fee',
             padding: '10px',
-            borderRadius: '8px',
-            border: '1px solid #c40303'
         },
         inputGroup: { display: 'flex', gap: '20px' },
         input: { width: '100%', padding: '12px', margin: '8px 0', borderRadius: '12px', border: '1.5px solid #7b7a7a', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
@@ -129,21 +145,21 @@ export default function CustomerRegister() {
                 
                 <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', width: '80%', alignSelf: 'center'}}>
                     <div style={styles.inputGroup}>
-                        <input name="firstname" type="text" placeholder="first name" style={styles.input} onChange={handleChange} required />
-                        <input name="lastname" type="text" placeholder="last name" style={styles.input} onChange={handleChange} required />
+                        <input name="firstname" type="text" placeholder="first name" style={styles.input} value={formData.firstname} onChange={handleChange} required />
+                        <input name="lastname" type="text" placeholder="last name" style={styles.input} value={formData.lastname} onChange={handleChange} required />
                     </div>
-                    
-                    <input name="address" type="text" placeholder="home address" style={styles.input} onChange={handleChange} required />
-                    <input name="email" type="email" placeholder="email" style={styles.input} onChange={handleChange} required />
-                    <input name="password" type="password" placeholder="password" style={styles.input} onChange={handleChange} required />
-                    <input name="confirmPassword" type="password" placeholder="confirm password" style={styles.input} onChange={handleChange} required />
+
+                    <input name="address" type="text" placeholder="home address" style={styles.input} value={formData.address} onChange={handleChange} required />
+                    <input name="email" type="email" placeholder="email" style={styles.input} value={formData.email} onChange={handleChange} required />
+                    <input name="password" type="password" placeholder="password" style={styles.input} value={formData.password} onChange={handleChange} required />
+                    <input name="confirmPassword" type="password" placeholder="confirm password" style={styles.input} value={formData.confirmPassword} onChange={handleChange} required />
                     
                     <div style={styles.loginLink} onClick={() => navigate('/')}>
                         Already have an account?
                     </div>
                     
                     <button type="submit" style={styles.loginBtn} disabled={isLoading}>
-                        {isLoading ? "sending..." : "sign in"}
+                        {isLoading ? "Signing up..." : "sign in"}
                     </button>
                 </form>
             </div>
