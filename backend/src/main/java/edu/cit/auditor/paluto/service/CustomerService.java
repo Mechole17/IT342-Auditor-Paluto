@@ -3,6 +3,7 @@ package edu.cit.auditor.paluto.service;
 import edu.cit.auditor.paluto.dto.CustomerRegistrationDTO;
 import edu.cit.auditor.paluto.entity.Customer;
 import edu.cit.auditor.paluto.entity.User;
+import edu.cit.auditor.paluto.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.repository.CustomerRepository;
 import edu.cit.auditor.paluto.repository.UserRepository;
 import edu.cit.auditor.paluto.response.ApiResponse;
@@ -27,7 +28,7 @@ public class CustomerService {
     @Transactional
     public Customer registerCustomer(CustomerRegistrationDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("Email address is already in use.");
+            throw new EmailAlreadyExistsException("Email already in use.");
         }
         Customer newCustomer = Customer.builder()
                 // USER attr

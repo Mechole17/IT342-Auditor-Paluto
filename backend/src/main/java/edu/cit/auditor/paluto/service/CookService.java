@@ -2,6 +2,7 @@ package edu.cit.auditor.paluto.service;
 
 import edu.cit.auditor.paluto.dto.CookRegistrationDTO;
 import edu.cit.auditor.paluto.entity.Cook;
+import edu.cit.auditor.paluto.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.repository.CookRepository;
 import edu.cit.auditor.paluto.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -21,7 +22,7 @@ public class CookService {
     @Transactional
     public Cook registerCook(CookRegistrationDTO dto){
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("Email address is already in use.");
+            throw new EmailAlreadyExistsException("Email already in use.");
         }
         Cook newCook = Cook.builder()
                 //USER attr

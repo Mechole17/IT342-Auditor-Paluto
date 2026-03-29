@@ -3,6 +3,8 @@ package edu.cit.auditor.paluto.controller;
 import edu.cit.auditor.paluto.dto.CustomerRegistrationDTO;
 import edu.cit.auditor.paluto.dto.LoginDataResponseDTO;
 import edu.cit.auditor.paluto.entity.Customer;
+import edu.cit.auditor.paluto.exception.EmailAlreadyExistsException;
+import edu.cit.auditor.paluto.response.ApiError;
 import edu.cit.auditor.paluto.response.ApiResponse;
 import edu.cit.auditor.paluto.service.CustomerService;
 import edu.cit.auditor.paluto.service.JwtService;
@@ -24,21 +26,36 @@ public class CustomerController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<LoginDataResponseDTO>> registerCustomer(@Valid @RequestBody CustomerRegistrationDTO dto) {
-        Customer registeredCustomer = customerService.registerCustomer(dto);
+        //used LoginDataResponseDTO to handle auto-login
+        try {
+            Customer registeredCustomer = customerService.registerCustomer(dto);
 
-        // Generate token immediately for Auto-Login
-        String token = jwtService.generateToken(registeredCustomer);
+            // Generate token immediately for Auto-Login
+            String token = jwtService.generateToken(registeredCustomer);
 
-        // Wrap user and token together
-        LoginDataResponseDTO authData = new LoginDataResponseDTO(registeredCustomer, token, null);
+            // Wrap user and token together
+            LoginDataResponseDTO authData = new LoginDataResponseDTO(registeredCustomer, token, null);
 
-        ApiResponse<LoginDataResponseDTO> response = ApiResponse.<LoginDataResponseDTO>builder()
-                .success(true)
-                .data(authData)
-                .error(null)
+            ApiResponse<LoginDataResponseDTO> response = ApiResponse.<LoginDataResponseDTO>builder()
+                    .success(true)
+                    .data(authData)
+                    .error(null)
+                    .timestamp(LocalDateTime.now().toString())
+                    .build();
+
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        }catch (EmailAlreadyExistsException e){
+            ApiResponse<LoginDataResponseDTO> errorResponse = ApiResponse.<LoginDataResponseDTO>builder()
+                .success(false)
+                .data(null)
+                .error(ApiError.builder()
+                        .code("DB-002")
+                        .message(e.getMessage())
+                        .build())
                 .timestamp(LocalDateTime.now().toString())
                 .build();
 
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+              return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        }
     }
 }

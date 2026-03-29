@@ -21,11 +21,11 @@ public class AuthService {
     public LoginDataResponseDTO authenticate(LoginRequestDTO request) {
         // 1. Find user by email
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("AUTH-001: Invalid credentials"));
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
         // 2. Verify Password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("AUTH-001: Invalid credentials");
+            throw new RuntimeException("Invalid credentials");
         }
 
         // 3. Generate Tokens
