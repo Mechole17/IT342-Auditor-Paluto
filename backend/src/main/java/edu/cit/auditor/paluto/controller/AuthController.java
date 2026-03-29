@@ -40,7 +40,7 @@ public class AuthController {
                     .success(false)
                     .data(null)
                     .error(ApiError.builder()
-                            .code("AUTH_ERROR")
+                            .code("AUTH-001")
                             .message(e.getMessage())
                             .build())
                     .timestamp(LocalDateTime.now().toString())
