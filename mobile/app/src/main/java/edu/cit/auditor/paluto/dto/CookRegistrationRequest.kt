@@ -7,7 +7,8 @@ data class CookRegistrationRequest(
     val email: String,
     val password: String,
     val role: String = "COOK",
+    val auth_provider: String = "LOCAL", // Default to LOCAL
     val hourly_rate: Double,
     val years_xp: Int,
-    val bio: String
+    val bio: String,
 )
