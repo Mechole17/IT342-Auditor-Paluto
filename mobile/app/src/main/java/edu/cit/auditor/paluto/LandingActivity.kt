@@ -33,19 +33,19 @@ class LandingActivity : AppCompatActivity() {
         setContentView(binding.root)
 
 
-//        // 1. Open Registration as Cook
-//        binding.btnJoinAsCook.setOnClickListener {
-//            val intent = Intent(this, RegisterActivity::class.java)
-//            intent.putExtra("ROLE_TYPE", "COOK")
-//            startActivity(intent)
-//        }
-//
-//        // 2. Open Registration as Customer
-//        binding.btnFindCook.setOnClickListener {
-//            val intent = Intent(this, RegisterActivity::class.java)
-//            intent.putExtra("ROLE_TYPE", "CUSTOMER")
-//            startActivity(intent)
-//        }
+        // 1. Open Registration as Cook
+        binding.cookRegisterButton.setOnClickListener {
+            val intent = Intent(this, CookRegistrationActivity::class.java)
+            intent.putExtra("ROLE_TYPE", "COOK")
+            startActivity(intent)
+        }
+
+        // 2. Open Registration as Customer
+        binding.customerRegisterButton.setOnClickListener {
+            val intent = Intent(this, CustomerRegistrationPageActivity::class.java)
+            intent.putExtra("ROLE_TYPE", "CUSTOMER")
+            startActivity(intent)
+        }
 
         // 3. Open the Login Modal (DialogFragment)
         binding.signInButton.setOnClickListener {

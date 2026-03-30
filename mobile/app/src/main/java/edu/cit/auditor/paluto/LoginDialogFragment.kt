@@ -47,6 +47,7 @@ class LoginDialogFragment : DialogFragment() {
 
         // Use Coroutines for API call
         CoroutineScope(Dispatchers.Main).launch {
+            setUIState(true)
             try {
                 val response = RetrofitClient.instance.login(LoginRequest(email, password))
                 if (response.isSuccessful && response.body()?.success == true) {
@@ -90,13 +91,19 @@ class LoginDialogFragment : DialogFragment() {
                 } else {
                     val err_msg = NetworkUtils.parseError(response)
                     Toast.makeText(context, err_msg, Toast.LENGTH_SHORT).show()
+                    clearPass()
+                    setUIState(false)
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Unable to connect to server.", Toast.LENGTH_SHORT).show()
+                setUIState(false)
             }
         }
     }
-
+    private fun clearPass(){
+        binding.etPassword.setText("")
+        binding.etPassword.requestFocus()
+    }
     private fun performLogout() {
         val sharedPref = requireActivity().getSharedPreferences("PalutoPrefs", Context.MODE_PRIVATE)
         sharedPref.edit().clear().apply() // Clear JWT and Role
@@ -108,5 +115,19 @@ class LoginDialogFragment : DialogFragment() {
         super.onStart()
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+    private fun setUIState(isRegistering: Boolean) {
+        binding.btnLoginSubmit.apply {
+            if (isRegistering) {
+                isEnabled = false
+                alpha = 0.9f // Greys out the button
+                text = "signing in..."
+
+            } else {
+                isEnabled = true
+                alpha = 1.0f // Returns to full color
+                text = "sign in"
+            }
+        }
     }
 }
