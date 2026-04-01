@@ -17,7 +17,13 @@ export default function AuthProvider({ children }) {
     }, [token]);
 
     const login = (userData, accessToken) => {
-        setUser(userData);
+        const user = {
+        email: userData.user.email,
+        firstName: userData.user.firstname,   // ← lowercase 'n' from your backend
+        lastName: userData.user.lastname,
+        role: userData.user.role,
+    };
+        setUser(user);
         setToken(accessToken);
         localStorage.setItem('token', accessToken);
         localStorage.setItem('userData', JSON.stringify(userData));

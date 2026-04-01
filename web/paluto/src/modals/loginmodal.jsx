@@ -23,13 +23,14 @@ export default function LoginModal({ onClose }) {
                 login(user, accessToken); // Updates global state
                 console.log(response);
                 onClose();
+                console.log(response);
                 if (user.role === 'CUSTOMER') {
                     alert("Customer Login Successful! Redirecting...");
-                    navigate('/customer/home');
+                    navigate('/customer');
                 }
                 else if (user.role === 'COOK') {
                     alert("Cook Login Successful! Redirecting...");
-                    navigate('/cook/home');
+                    navigate('/cook');
                 }
                 else if (user.role === 'ADMIN') {
                     alert("Admin Login Successful! Redirecting...");
