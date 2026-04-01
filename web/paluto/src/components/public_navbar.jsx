@@ -1,11 +1,9 @@
-// src/components/Navbar.jsx
+// src/components/PublicNavbar.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import LoginModal from '../modals/loginmodal.jsx';
 
-export default function Navbar() {
-    const { user, logout } = useAuth();
+export default function PublicNavbar() {
     const navigate = useNavigate();
     const [isLoginOpen, setIsLoginOpen] = useState(false);
 
@@ -15,21 +13,14 @@ export default function Navbar() {
                 <div style={navStyles.logoContainer} onClick={() => navigate('/')}>
                     PALUTO
                     <div style={navStyles.navLinks}>
-                        <button style={navStyles.orangeBadge} onClick={() => navigate('/')}>Home</button>
                         <span style={navStyles.link} onClick={() => navigate('/cooks')}>Cooks</span>
-                        <span style={navStyles.link} onClick={() => navigate('/bookings')}>Bookings</span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                    {!user ? (
-                        <button style={navStyles.navyBtn} onClick={() => setIsLoginOpen(true)}>sign in</button>
-                    ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={navStyles.welcomeTxt}>Hi, {user.firstName}!</span>
-                            <button style={navStyles.lightBtn} onClick={logout}>Logout</button>
-                        </div>
-                    )}
-                </div>
+
+                {/* Sign in only lives here, in the public navbar */}
+                <button style={navStyles.navyBtn} onClick={() => setIsLoginOpen(true)}>
+                    sign in
+                </button>
             </nav>
 
             {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} />}
@@ -42,8 +33,5 @@ const navStyles = {
     logoContainer: { fontSize: '32px', fontWeight: '900', display: 'flex', alignItems: 'center', cursor: 'pointer' },
     navLinks: { display: 'flex', gap: '25px', alignItems: 'center', fontSize: '16px', fontWeight: '300', marginLeft: '50px' },
     link: { color: '#666', cursor: 'pointer' },
-    orangeBadge: { backgroundColor: '#FF8A00', color: '#fff', padding: '5px 20px', borderRadius: '15px', border: 'none', cursor: 'pointer' },
     navyBtn: { backgroundColor: '#0A0A1F', color: '#fff', padding: '10px 35px', borderRadius: '20px', border: 'none', cursor: 'pointer' },
-    lightBtn: { backgroundColor: '#f0f0f0', border: 'none', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer' },
-    welcomeTxt: { fontSize: '14px', fontWeight: '600' }
 };

@@ -1,6 +1,3 @@
-// src/pages/landingpage.jsx
-import React from 'react';
-import Navbar from '../components/navbar';
 import { useNavigate } from 'react-router-dom';
 import ramen from '../asset/ramen.png';
 
@@ -9,7 +6,6 @@ export default function LandingPage() {
 
     return (
         <div>
-        <Navbar />
         <div style={styles.container}>
             {/* NOTE: We REMOVED <Navbar /> from here. 
                It is now globally handled in App.js 
