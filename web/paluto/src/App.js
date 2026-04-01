@@ -1,10 +1,18 @@
-import LandingPage from './pages/landingpage';
-import CustomerRegister from './pages/customer_registrationpage';
-import CustomerHomePage from './pages/customer_homepage';
-import CookRegister from './pages/cook_registrationpage';
-import CookHomePage from './pages/cook_homepage';
+import LandingPage from './pages/public/landingpage.jsx';
+import Cooks from './pages/public/cooks.jsx';
+
+import CustomerRegister from './pages/customer/customer_registrationpage';
+import CustomerHomePage from './pages/customer/customer_homepage';
+import CustomerCooks from './pages/customer/customer_cooks.jsx';
+import CustomerBookings from './pages/customer/customer_bookings.jsx';
+
+import CookRegister from './pages/cook/cook_registrationpage.jsx';
+import CookHomePage from './pages/cook/cook_dashboard.jsx';
+import CookBookings from './pages/cook/cook_bookings.jsx';
+import CookPortfolio from './pages/cook/cook_portfolio.jsx';
+
 import AuthProvider from './context/AuthContext.jsx';
-import AdminHomePage from './pages/admin_homepage';
+import AdminHomePage from './pages/admin/admin_homepage.jsx';
 import ProtectedRoute from './context/protectedRoutes.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
@@ -24,9 +32,8 @@ function App() {
 
               {/* Public layout */}
               <Route element={<PublicLayout />}>
-              <Route path="/" element={<LandingPage />} />
-                  {/* <Route path="/cooks" element={<CooksPage />} />
-                  <Route path="/bookings" element={<BookingsPage />} /> */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/cooks" element={<Cooks />} />
               </Route>
           
             {/* Customer layout wraps all /customer/* pages */}
@@ -36,9 +43,8 @@ function App() {
               </ProtectedRoute>
               }>
               <Route index element={<CustomerHomePage />} />  {/* /customer */}
-              {/* future customer routes: */}
-              {/* <Route path="cooks" element={<CooksPage />} /> → /customer/cooks */}
-              {/* <Route path="bookings" element={<BookingsPage />} /> → /customer/bookings */}
+              <Route path="cooks" element={<CustomerCooks />} /> {/* /customer/cooks */}
+              <Route path="bookings" element={<CustomerBookings />} /> {/* /customer/bookings */}
             </Route>
 
             {/* Cook layout wraps all /cook/* pages */}
@@ -48,7 +54,8 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<CookHomePage />} />  {/* /cook */}
-              {/* future cook routes: */}
+              <Route path="bookings" element={<CookBookings />} /> {/* /cook/bookings */}
+              <Route path="portfolio" element={<CookPortfolio />} /> {/* /cook/portfolio */}
               {/* <Route path="orders" element={<CookOrders />} /> → /cook/orders */}
 
             </Route>
