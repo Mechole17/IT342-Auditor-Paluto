@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Ramen from '../asset/ramen.png';
+import Ramen from '../../asset/ramen.png';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CookRegister() {
     const {login} = useAuth();

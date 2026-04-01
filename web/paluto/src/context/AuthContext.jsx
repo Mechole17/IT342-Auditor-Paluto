@@ -8,25 +8,34 @@ export default function AuthProvider({ children }) {
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
+    // AuthContext.js
     useEffect(() => {
-        const savedUser = localStorage.getItem('userData');
-        if (savedUser && token) {
-            setUser(JSON.parse(savedUser));
+        try {
+            const savedToken = localStorage.getItem('token');
+            const savedUser = localStorage.getItem('userData');
+            if (savedToken && savedUser) {
+                setToken(savedToken);
+                setUser(JSON.parse(savedUser));
+            }
+        } catch {
+            localStorage.removeItem('userData');
+            localStorage.removeItem('token');
+        } finally {
+            setLoading(false);  // ← always runs once on mount
         }
-        setLoading(false);
-    }, [token]);
+    }, []);  // ← empty array, runs ONCE only
 
     const login = (userData, accessToken) => {
         const user = {
-        email: userData.user.email,
-        firstName: userData.user.firstname,   // ← lowercase 'n' from your backend
-        lastName: userData.user.lastname,
-        role: userData.user.role,
-    };
+            email: userData.email,
+            firstName: userData.firstname,
+            lastName: userData.lastname,
+            role: userData.role,
+        };
         setUser(user);
         setToken(accessToken);
         localStorage.setItem('token', accessToken);
-        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('userData', JSON.stringify(user));  // ← save mapped user, not raw userData
     };
 
     const logout = () => {

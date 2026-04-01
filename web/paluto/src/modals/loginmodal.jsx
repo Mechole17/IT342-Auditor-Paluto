@@ -21,9 +21,7 @@ export default function LoginModal({ onClose }) {
             if (response.data.success) {
                 const { accessToken, user } = response.data.data;
                 login(user, accessToken); // Updates global state
-                console.log(response);
                 onClose();
-                console.log(response);
                 if (user.role === 'CUSTOMER') {
                     alert("Customer Login Successful! Redirecting...");
                     navigate('/customer');
@@ -34,7 +32,7 @@ export default function LoginModal({ onClose }) {
                 }
                 else if (user.role === 'ADMIN') {
                     alert("Admin Login Successful! Redirecting...");
-                    navigate('/admin/home');
+                    navigate('/admin');
                 }
                
             }

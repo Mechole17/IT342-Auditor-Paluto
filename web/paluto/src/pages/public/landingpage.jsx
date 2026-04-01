@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import ramen from '../asset/ramen.png';
+import ramen from '../../asset/ramen.png';
 
 export default function LandingPage() {
     const navigate = useNavigate();
