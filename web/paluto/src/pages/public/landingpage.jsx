@@ -7,10 +7,6 @@ export default function LandingPage() {
     return (
         <div>
         <div style={styles.container}>
-            {/* NOTE: We REMOVED <Navbar /> from here. 
-               It is now globally handled in App.js 
-            */}
-            
             <div style={styles.hero}>
                 <div style={{zIndex: 2}}>
                     <h1 style={styles.heroText}>
