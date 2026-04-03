@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     if (loading) return null;
 
     if (!user) return <Navigate to="/" replace />;//replace later to a error page or login page
-    if (!allowedRoles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+    if (!allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
 
     return children;
 }
