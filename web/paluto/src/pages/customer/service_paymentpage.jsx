@@ -1,40 +1,49 @@
-import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
-
-const MEAL = {
-    title: 'Family Feast',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600',
-    quantity: 1,
-    ingredientCost: 1000,
-    prepTime: '1 hour',
-    cookRate: 450,
-};
+import React, { useState } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 export default function PaymentPage() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // 1. Data from DTO (Sent from MealDetails)
+    const { service, quantity } = location.state || {};
+
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [address, setAddress] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('');
-
-    const navigate = useNavigate();
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const Cancel = () => {
         window.history.back();
-    }
+    };
 
-    // date validation
+    // Date validation
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const minDate = tomorrow.toISOString().split('T')[0];
 
-    const total = MEAL.ingredientCost + MEAL.cookRate;
+    // --- Official Paluto Logic ---
+    const ingredientCostPerSet = Number(service?.ingredientsCost) || 0;
+    const cookRatePerHour      = Number(service?.cookHourlyRate) || 0;
+    const basePrepTime         = Number(service?.estPrepTime) || 0;
+    const qty                  = Number(quantity) || 1;
 
-    const [errors, setErrors] = useState({});
+    // Smart Scaling: 1st set = 100% time, each extra set adds 20% more time
+    const totalPrepTimeMinutes = qty > 1 
+        ? basePrepTime + (basePrepTime * 0.20 * (qty - 1)) 
+        : basePrepTime;
 
-const handleSubmit = (e) => {
-    e.preventDefault();
+    const totalIngredients = ingredientCostPerSet * qty;
+    const laborCost        = (totalPrepTimeMinutes / 60) * cookRatePerHour;
+    const total            = totalIngredients + laborCost;
 
-    const newErrors = {};
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const newErrors = {};
         if (!date) newErrors.date = 'Date is required';
         if (!time) newErrors.time = 'Time is required';
         if (!address.trim()) newErrors.address = 'Address is required';
@@ -46,11 +55,34 @@ const handleSubmit = (e) => {
         }
 
         setErrors({});
-        console.log({ date, time, address, paymentMethod });
-        alert('Payment successful! For booking date: ' + date + ' at ' + time);
-        // call your API here
-        navigate('/customer/bookings');  // redirect to bookings page after payment
+        setIsSubmitting(true);
+
+        try {
+            const token = localStorage.getItem('token');
+            const payload = {
+                serviceId: service.id,
+                quantity: qty,
+                serviceAddress: address,
+                scheduledDate: date,
+                scheduledTime: time + ":00"
+            };
+
+            const response = await axios.post('http://localhost:8080/api/bookings/create', payload, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.data.success) {
+                alert('Payment successful! For booking date: ' + date + ' at ' + time);
+                navigate('/customer/bookings');
+            }
+        } catch (error) {
+            alert(error.response?.data?.error?.message || "Booking failed. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    if (!service) return <div style={styles.wrapper}><h2>No service data found.</h2></div>;
 
     return (
         <div style={styles.wrapper}>
@@ -59,30 +91,34 @@ const handleSubmit = (e) => {
             <div style={styles.content}>
                 {/* Left Column */}
                 <div style={styles.leftCol}>
-                    <img src={MEAL.image} alt={MEAL.title} style={styles.image} />
+                    <img src={service.imageUrl} alt={service.title} style={styles.image} />
                     <div style={styles.summaryBox}>
                         <div style={styles.summaryRow}>
                             <span style={styles.summaryLabel}>Quantity</span>
-                            <span style={styles.summaryValue}>x{MEAL.quantity}</span>
+                            <span style={styles.summaryValue}>x{qty}</span>
                         </div>
                         <div style={styles.summaryRow}>
                             <span style={styles.summaryLabel}>Est. ingredient cost</span>
-                            <span style={styles.summaryValue}>Php {MEAL.ingredientCost.toLocaleString()}</span>
+                            <span style={styles.summaryValue}>
+                                Php {totalIngredients.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
                         </div>
                         <div style={styles.summaryRow}>
                             <span style={styles.summaryLabel}>Prep time</span>
-                            <span style={styles.summaryValue}>{MEAL.prepTime}</span>
+                            <span style={styles.summaryValue}>{Math.round(totalPrepTimeMinutes)} mins</span>
                         </div>
                         <div style={styles.summaryRow}>
                             <span style={styles.summaryLabel}>Cook rate/hr</span>
-                            <span style={styles.summaryValue}>Php {MEAL.cookRate.toLocaleString()}</span>
+                            <span style={styles.summaryValue}>
+                                Php {cookRatePerHour.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Column */}
                 <div style={styles.rightCol}>
-                    <h1 style={styles.mealTitle}>{MEAL.title}</h1>
+                    <h1 style={styles.mealTitle}>{service.title}</h1>
 
                     <form onSubmit={handleSubmit} style={styles.form}>
                         {/* Date & Time */}
@@ -92,7 +128,7 @@ const handleSubmit = (e) => {
                                 <input
                                     type="date"
                                     value={date}
-                                    min={minDate}  // prevent selecting past dates
+                                    min={minDate}
                                     onChange={e => setDate(e.target.value)}
                                     style={styles.input}
                                 />
@@ -140,13 +176,27 @@ const handleSubmit = (e) => {
                         {/* Total */}
                         <div style={styles.totalRow}>
                             <span style={styles.totalLabel}>Total</span>
-                            <span style={styles.totalAmount}>Php {total.toLocaleString()}</span>
+                            <span style={styles.totalAmount}>
+                                Php {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
                         </div>
 
                         {/* Buttons */}
                         <div style={styles.payRow}>
-                            <button style={styles.cancelBtn} onClick={Cancel}>Cancel</button>
-                            <button type="submit" style={styles.payBtn}>Pay now</button>
+                            <button 
+                                type="button" 
+                                style={styles.cancelBtn} 
+                                onClick={Cancel}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit" 
+                                style={styles.payBtn} 
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Processing...' : 'Pay now'}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -189,8 +239,6 @@ const styles = {
         flex: 1,
         overflow: 'hidden',
     },
-
-    // Left
     leftCol: {
         flex: 1,
         display: 'flex',
@@ -222,8 +270,6 @@ const styles = {
         fontSize: '14px',
         fontWeight: '600',
     },
-
-    // Right
     rightCol: {
         flex: 1,
         display: 'flex',
@@ -267,8 +313,6 @@ const styles = {
         height: '42px',
         fontFamily: 'inherit',
     },
-
-    // Total
     totalRow: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -286,8 +330,6 @@ const styles = {
         fontSize: '28px',
         fontWeight: '800',
     },
-
-    // Buttons
     payRow: {
         display: 'flex',
         alignItems: 'center',

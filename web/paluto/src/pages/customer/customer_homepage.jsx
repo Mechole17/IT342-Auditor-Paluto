@@ -1,19 +1,41 @@
+import React, { useState, useEffect } from 'react'; // Added hooks
 import { useNavigate } from 'react-router-dom';
-
-const MENU_ITEMS = [
-    { title: 'Italian Feast', category: 'Italian', price: 120, image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400' },
-    { title: 'Sushi Night', category: 'Japanese', price: 95, image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400' },
-    { title: 'BBQ Grill', category: 'American', price: 85, image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400' },
-    { title: 'Tapas & Wine', category: 'Spanish', price: 75, image: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400' },
-    { title: 'Thai Classics', category: 'Thai', price: 70, image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400' },
-    { title: 'French Bistro', category: 'French', price: 130, image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400' },
-];
+import axios from 'axios'; // Ensure axios is installed
 
 export default function CustomerHomePage() {
     const navigate = useNavigate();
+    
+    // 1. State for your live menu items
+    const [menuItems, setMenuItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // 2. Fetch data from Backend
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/api/services/all');
+                
+                // Uniformity check: response -> axios data -> our ApiResponse .data
+                if (response.data.success) {
+                    setMenuItems(response.data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch services:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchServices();
+    }, []);
+
+    if (loading) {
+        return <div style={{ padding: '50px', textAlign: 'center' }}>Loading delicious meals...</div>;
+    }
+
     return (
         <div>
-            {/* Hero Section */}
+            {/* Hero Section stays the same */}
             <div style={styles.hero}>
                 <div style={styles.overlay} />
                 <div style={styles.heroContent}>
@@ -27,27 +49,32 @@ export default function CustomerHomePage() {
             <div style={styles.offerings}>
                 <h1 style={styles.offeringsTitle}>Popular Offerings</h1>
                 <div style={styles.menuGrid}>
-                    {MENU_ITEMS.map((item, index) => (
+                    {menuItems.map((item) => (
                         <div
-                            key={index}
+                            key={item.id} // Use the DB ID as key
                             style={{
                                 ...styles.menuCard,
-                                backgroundImage: `url('${item.image}')`,
+                                // Fallback image if the service doesn't have one
+                                backgroundImage: `url('${item.imageUrl || 'https://via.placeholder.com/400x220?text=Paluto+Dish'}')`,
                             }}
-
-                            onClick={()=> navigate('/customer/service-details')}
+                            // Pass the actual service ID to the details page
+                            onClick={() => navigate(`/customer/service-details/${item.id}`)}
                         >
-                            {/* Dark gradient at bottom for text */}
                             <div style={styles.menuCardOverlay} />
 
                             <div style={styles.menuCardContent}>
-                                <div style={styles.menuCategory}>{item.category}</div>
+                                {/* Map 'category' to your 'dishType' or similar field */}
+                                {/* <div style={styles.menuCategory}>{item.category || 'Home Cooked'}</div> */}
                                 <h3 style={styles.menuTitle}>{item.title}</h3>
-                                <p style={styles.menuPrice}>${item.price}<span style={styles.menuPriceSub}>/person</span></p>
+                                {/* Assuming ingredientsCost is your base price */}
+                                <p style={styles.menuPrice}>₱{item.ingredientsCost}<span style={styles.menuPriceSub}> + Labor</span></p>
                             </div>
                         </div>
                     ))}
                 </div>
+                
+                {menuItems.length === 0 && <p>No offerings available at the moment.</p>}
+
                 <div style={styles.seeMoreWrapper}>
                     <button style={styles.seeMoreBtn}>See More →</button>
                 </div>
@@ -55,6 +82,8 @@ export default function CustomerHomePage() {
         </div>
     );
 }
+
+// ... styles stay the same
 
 const styles = {
     hero: {

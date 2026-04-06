@@ -1,53 +1,71 @@
-import { useState } from "react";
-
-const BOOKINGS = [
-    {
-        id: 1,
-        menu: 'Family Feast',
-        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300',
-        customer: 'John Doe',
-        date: 'March 5, 2025',
-        time: '4:30 PM',
-        quantity: 1,
-        status: 'active',
-        paymentStatus: 'pending',
-    },
-    {
-        id: 2,
-        menu: 'Sushi Night',
-        image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300',
-        customer: 'Jane Smith',
-        date: 'March 10, 2025',
-        time: '7:00 PM',
-        quantity: 2,
-        status: 'completed',
-        paymentStatus: 'paid',
-    },
-    {
-        id: 3,
-        menu: 'BBQ Grill',
-        image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=300',
-        customer: 'Bob Johnson',
-        date: 'February 20, 2025',
-        time: '6:00 PM',
-        quantity: 3,
-        status: 'rejected',
-        paymentStatus: 'refunded',
-    },
-];
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const TABS = ['Active', 'Completed', 'Rejected'];
 
 export default function CustomerBookingsPage() {
     const [activeTab, setActiveTab] = useState('Active');
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const filtered = BOOKINGS.filter(b => b.status === activeTab.toLowerCase());
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                // 1. MATCH THE KEY: Your AuthContext uses 'userData'
+                const userStr = localStorage.getItem('userData');
+                const token = localStorage.getItem('token');
+                
+                if (!userStr || !token) {
+                    console.error("No user or token found in localStorage");
+                    setLoading(false);
+                    return;
+                }
+
+                const userData = JSON.parse(userStr);
+                
+                // 2. USE DYNAMIC ID: Extracting the ID we just added to the DTO
+                const userId = userData.id;
+
+                if (!userId) {
+                    console.error("User ID is missing from storage!", userData);
+                    setLoading(false);
+                    return;
+                }
+
+                // 3. DYNAMIC URL: Using backticks and the userId variable
+                const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.data.success) {
+                    setBookings(response.data.data);
+                }
+            } catch (error) {
+                console.error("Fetch failed:", error.response?.data || error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBookings();
+    }, []);
+
+    const filtered = bookings.filter(b => {
+        const status = b.status ? b.status.toLowerCase() : '';
+        
+        if (activeTab === 'Active') {
+            return status === 'paid_pending' || status === 'accepted' || status === 'pending';
+        }
+        if (activeTab === 'Completed') return status === 'completed';
+        if (activeTab === 'Rejected') return status === 'rejected' || status === 'cancelled';
+        return false;
+    });
+
+    if (loading) return <div style={styles.wrapper}>Loading bookings...</div>;
 
     return (
         <div style={styles.wrapper}>
             <h2 style={styles.pageTitle}>Bookings</h2>
 
-            {/* Tabs */}
             <div style={styles.tabs}>
                 {TABS.map(tab => (
                     <button
@@ -63,28 +81,31 @@ export default function CustomerBookingsPage() {
                 ))}
             </div>
 
-            {/* Booking Cards */}
             <div style={styles.list}>
                 {filtered.length === 0 ? (
-                    <p style={styles.empty}>No {activeTab.toLowerCase()} bookings.</p>
+                    <p style={styles.empty}>No {activeTab.toLowerCase()} bookings found.</p>
                 ) : (
                     filtered.map(booking => (
                         <div key={booking.id} style={styles.card}>
-                            <img src={booking.image} alt={booking.menu} style={styles.cardImg} />
+                            <img src={booking.serviceImage} alt={booking.serviceTitle} style={styles.cardImg} />
 
                             <div style={styles.cardInfo}>
-                                <p style={styles.menuName}>{booking.menu}</p>
-                                <p style={styles.customer}>{booking.customer}</p>
+                                <p style={styles.menuName}>{booking.serviceTitle}</p>
                                 <p style={styles.quantity}>x{booking.quantity}</p>
                             </div>
 
                             <div style={styles.cardMeta}>
-                                <p style={styles.metaText}>{booking.date}</p>
-                                <p style={styles.metaText}>{booking.time}</p>
+                                <p style={styles.metaText}>{booking.scheduledDate}</p>
+                                <p style={styles.metaText}>{booking.scheduledTime}</p>
                             </div>
 
                             <div style={styles.cardRight}>
-                                <p style={styles.paymentStatus}>{booking.paymentStatus}</p>
+                                <p style={{
+                                    ...styles.paymentStatus,
+                                    color: booking.status.includes('PENDING') ? '#ec9812' : '#28a745'
+                                }}>
+                                    {booking.status.replace('_', ' ')}
+                                </p>
                                 <button style={styles.detailsBtn}>Details</button>
                             </div>
                         </div>
@@ -109,8 +130,6 @@ const styles = {
         fontWeight: '700',
         margin: '0 0 24px',
     },
-
-    // Tabs
     tabs: {
         display: 'flex',
         gap: '12px',
@@ -130,8 +149,6 @@ const styles = {
         backgroundColor: '#1a1a1a',
         color: '#fff',
     },
-
-    // List
     list: {
         display: 'flex',
         flexDirection: 'column',
@@ -143,8 +160,6 @@ const styles = {
         color: '#aaa',
         fontSize: '14px',
     },
-
-    // Card
     card: {
         display: 'flex',
         alignItems: 'center',
@@ -204,7 +219,8 @@ const styles = {
     paymentStatus: {
         margin: 0,
         fontSize: '13px',
-        color: '#888',
+        fontWeight: '600',
+        textTransform: 'uppercase'
     },
     detailsBtn: {
         backgroundColor: '#F5A623',
