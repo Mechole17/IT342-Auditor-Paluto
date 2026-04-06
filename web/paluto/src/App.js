@@ -5,6 +5,8 @@ import CustomerRegister from './pages/customer/customer_registrationpage';
 import CustomerHomePage from './pages/customer/customer_homepage';
 import CustomerCooks from './pages/customer/customer_cooks.jsx';
 import CustomerBookings from './pages/customer/customer_bookings.jsx';
+import ServiceDetails from './pages/customer/service_detailspage.jsx';
+import PaymentPage from './pages/customer/service_paymentpage.jsx';
 
 import CookRegister from './pages/cook/cook_registrationpage.jsx';
 import CookHomePage from './pages/cook/cook_dashboard.jsx';
@@ -45,6 +47,8 @@ function App() {
               <Route index element={<CustomerHomePage />} />  {/* /customer */}
               <Route path="cooks" element={<CustomerCooks />} /> {/* /customer/cooks */}
               <Route path="bookings" element={<CustomerBookings />} /> {/* /customer/bookings */}
+              <Route path="service-details" element={<ServiceDetails />} /> {/* /customer/service-details */}
+              <Route path="service-payment" element={<PaymentPage />} /> {/* /customer/payment */}
             </Route>
 
             {/* Cook layout wraps all /cook/* pages */}
