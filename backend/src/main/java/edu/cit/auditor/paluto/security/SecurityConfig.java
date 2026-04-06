@@ -28,6 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/cook/register", "/api/customer/register").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/services/all").permitAll()
                         .requestMatchers("/api/services/create").hasAuthority("COOK") // Lock it down
+                        .requestMatchers("api/bookings.create").hasAuthority("CUSTOMER")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
