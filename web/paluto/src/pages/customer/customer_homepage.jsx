@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 const MENU_ITEMS = [
     { title: 'Italian Feast', category: 'Italian', price: 120, image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400' },
     { title: 'Sushi Night', category: 'Japanese', price: 95, image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400' },
@@ -8,6 +10,7 @@ const MENU_ITEMS = [
 ];
 
 export default function CustomerHomePage() {
+    const navigate = useNavigate();
     return (
         <div>
             {/* Hero Section */}
@@ -31,6 +34,8 @@ export default function CustomerHomePage() {
                                 ...styles.menuCard,
                                 backgroundImage: `url('${item.image}')`,
                             }}
+
+                            onClick={()=> navigate('/customer/service-details')}
                         >
                             {/* Dark gradient at bottom for text */}
                             <div style={styles.menuCardOverlay} />
