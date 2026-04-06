@@ -8,7 +8,7 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     // For Cook: "Show me my orders"
     List<Booking> findByCookIdOrderByCreatedAtDesc(Long cookId);
-
+    List<Booking> findByCustomerId(Long customerId);
     // For Customer: "Show me what I ordered"
     List<Booking> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
 }

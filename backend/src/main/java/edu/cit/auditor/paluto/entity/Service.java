@@ -36,4 +36,7 @@ public class Service {
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Transient // Not in DB, but shows in JSON
+    private Double cookHourlyRate;
 }
