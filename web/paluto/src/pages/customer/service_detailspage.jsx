@@ -1,69 +1,67 @@
-import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
-
-const MEAL = {
-    title: 'Family Feast',
-    description: 'A combination of common dishes served in most feast events in the Philippines.',
-    ingredientCost: 1000,
-    prepTime: '1 hour',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600',
-    ingredients: {
-        Protein: '1kg Pork Belly, 500g Chicken Thighs.',
-        Vegetables: '1/4kg Squash, 100g Bitter Melon (Ampalaya), String Beans, Eggplant.',
-        'Pantry Staples': 'Soy Sauce, Cane Vinegar, Peppercorns, Bay Leaves, Garlic, Shrimp Paste (Bagoong)',
-    },
-};
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 
 export default function MealDetails() {
-    const [quantity, setQuantity] = useState(1);
+    const { id } = useParams();
     const navigate = useNavigate();
+    const [service, setService] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [quantity, setQuantity] = useState(1);
 
-    const decrement = () => setQuantity(q => Math.max(1, q - 1));
-    const increment = () => setQuantity(q => q + 1);
+    useEffect(() => {
+        const fetchService = async () => {
+            try {
+                const res = await axios.get(`http://localhost:8080/api/services/${id}`);
+                if (res.data.success) setService(res.data.data);
+                console.log("Fetched service details:", res.data);
+            } catch (err) { console.error(err); }
+            finally { setLoading(false); }
+        };
+        fetchService();
+    }, [id]);
+
+    const handleBookNow = () => {
+        // We pass the WHOLE service object + selected quantity
+        navigate('/customer/service-payment', { 
+            state: { service, quantity } 
+        });
+    };
+
+    if (loading) return <div>Loading...</div>;
+    if (!service) return <div>Meal not found</div>;
 
     return (
         <div style={styles.wrapper}>
             <h2 style={styles.pageTitle}>Meal details</h2>
-
             <div style={styles.content}>
-                {/* Left Column */}
                 <div style={styles.leftCol}>
-                    <img src={MEAL.image} alt={MEAL.title} style={styles.image} />
+                    <img src={service.imageUrl} alt={service.title} style={styles.image} />
                     <div style={styles.ingredientsBox}>
                         <h3 style={styles.ingredientsTitle}>Ingredients:</h3>
-                        {Object.entries(MEAL.ingredients).map(([key, val]) => (
-                            <p key={key} style={styles.ingredientLine}>
-                                <span style={styles.ingredientKey}>{key}:</span> {val}
-                            </p>
-                        ))}
+                        <p style={styles.ingredientLine}>{service.ingredientsList}</p>
                     </div>
                 </div>
-
-                {/* Right Column */}
                 <div style={styles.rightCol}>
-                    <h1 style={styles.mealTitle}>{MEAL.title}</h1>
-                    <p style={styles.description}>{MEAL.description}</p>
-
+                    <h1 style={styles.mealTitle}>{service.title}</h1>
+                    <p style={styles.description}>{service.description}</p>
                     <div style={styles.metaRow}>
                         <div>
                             <p style={styles.metaLabel}>Est. ingredient cost</p>
-                            <p style={styles.metaValue}>Php {MEAL.ingredientCost.toLocaleString()}</p>
+                            <p style={styles.metaValue}>Php {service.ingredientsCost.toLocaleString()}</p>
                         </div>
                         <div>
                             <p style={styles.metaLabel}>Prep time</p>
-                            <p style={styles.metaValue}>{MEAL.prepTime}</p>
+                            <p style={styles.metaValue}>{service.estPrepTime} mins</p>
                         </div>
                     </div>
-
-                    <p style={styles.metaLabel}>Quantity</p>
                     <div style={styles.quantityRow}>
-                        <button style={styles.qtyBtn} onClick={decrement}>−</button>
+                        <button style={styles.qtyBtn} onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
                         <span style={styles.qtyValue}>{quantity}</span>
-                        <button style={styles.qtyBtn} onClick={increment}>+</button>
+                        <button style={styles.qtyBtn} onClick={() => setQuantity(quantity + 1)}>+</button>
                     </div>
-
                     <div style={styles.bookWrapper}>
-                        <button style={styles.bookBtn} onClick={()=> navigate('/customer/service-payment')}>Book</button>
+                        <button style={styles.bookBtn} onClick={handleBookNow}>Book</button>
                     </div>
                 </div>
             </div>

@@ -47,7 +47,7 @@ function App() {
               <Route index element={<CustomerHomePage />} />  {/* /customer */}
               <Route path="cooks" element={<CustomerCooks />} /> {/* /customer/cooks */}
               <Route path="bookings" element={<CustomerBookings />} /> {/* /customer/bookings */}
-              <Route path="service-details" element={<ServiceDetails />} /> {/* /customer/service-details */}
+              <Route path="service-details/:id" element={<ServiceDetails />} /> {/* /customer/service-details */}
               <Route path="service-payment" element={<PaymentPage />} /> {/* /customer/payment */}
             </Route>
 

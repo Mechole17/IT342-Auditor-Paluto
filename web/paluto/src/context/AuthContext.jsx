@@ -27,15 +27,17 @@ export default function AuthProvider({ children }) {
 
     const login = (userData, accessToken) => {
         const user = {
+            id: userData.id, // Now this will exist in the response!
             email: userData.email,
             firstName: userData.firstname,
             lastName: userData.lastname,
             role: userData.role,
         };
+        
         setUser(user);
         setToken(accessToken);
         localStorage.setItem('token', accessToken);
-        localStorage.setItem('userData', JSON.stringify(user));  // ← save mapped user, not raw userData
+        localStorage.setItem('userData', JSON.stringify(user)); 
     };
 
     const logout = () => {
