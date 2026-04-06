@@ -28,6 +28,7 @@ public class LoginDataResponseDTO {
     @Data
     @Builder
     public static class UserResponse {
+        private Long id;
         private String email;
         private String firstname;
         private String lastname;
