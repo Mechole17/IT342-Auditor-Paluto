@@ -6,6 +6,7 @@ import edu.cit.auditor.paluto.entity.Booking;
 import edu.cit.auditor.paluto.response.ApiError;
 import edu.cit.auditor.paluto.response.ApiResponse;
 import edu.cit.auditor.paluto.service.BookingService;
+import edu.cit.auditor.paluto.utils.ResponseUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,26 +31,12 @@ public class BookingController {
             Authentication authentication) {
         try {
             Long customerId = Long.parseLong(authentication.getName());
-
-
              bookingService.createBooking(customerId, request);
 
-            // Wrap it exactly like ServiceController
-            return new ResponseEntity<>(ApiResponse.<BookingRequestDTO>builder()
-                    .success(true)
-                    .data(request) // <--- RequestDTO inside the ApiResponse
-                    .timestamp(LocalDateTime.now().toString())
-                    .build(), HttpStatus.CREATED);
+            return ResponseUtility.success(request, HttpStatus.CREATED);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(ApiResponse.<BookingRequestDTO>builder()
-                    .success(false)
-                    .error(ApiError.builder()
-                            .code("BK-001")
-                            .message(e.getMessage())
-                            .build())
-                    .timestamp(LocalDateTime.now().toString())
-                    .build(), HttpStatus.BAD_REQUEST);
+            return ResponseUtility.error("BK-001",e.getMessage(),HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -58,25 +45,10 @@ public class BookingController {
         try {
             List<BookingResponseDTO> bookings = bookingService.getCustomerBookings(id);
 
-            return ResponseEntity.ok(ApiResponse.<List<BookingResponseDTO>>builder()
-                    .success(true)
-                    .data(bookings)
-                    .timestamp(LocalDateTime.now().toString())
-                    .build());
+            return ResponseUtility.success(bookings,HttpStatus.OK);
 
         } catch (Exception e) {
-            // FIXED: Corrected the Generic types and ensured the builder matches the Response DTO list
-            return new ResponseEntity<>(
-                    ApiResponse.<List<BookingResponseDTO>>builder()
-                            .success(false)
-                            .error(ApiError.builder()
-                                    .code("BK-001")
-                                    .message("Failed to fetch bookings: " + e.getMessage())
-                                    .build())
-                            .timestamp(LocalDateTime.now().toString())
-                            .build(),
-                    HttpStatus.BAD_REQUEST
-            );
+           return ResponseUtility.error("BK-002","Failed to fetch bookings: " + e.getMessage(),HttpStatus.BAD_REQUEST);
         }
     }
 }

@@ -8,6 +8,7 @@ import edu.cit.auditor.paluto.response.ApiError;
 import edu.cit.auditor.paluto.response.ApiResponse;
 import edu.cit.auditor.paluto.service.CookService;
 import edu.cit.auditor.paluto.service.JwtService;
+import edu.cit.auditor.paluto.utils.ResponseUtility;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,26 +37,11 @@ public class CookController {
             // Wrap user and token together
             LoginDataResponseDTO authData = new LoginDataResponseDTO(registeredCook, token, null);
 
-            ApiResponse<LoginDataResponseDTO> response = ApiResponse.<LoginDataResponseDTO>builder()
-                    .success(true)
-                    .data(authData)
-                    .error(null)
-                    .timestamp(LocalDateTime.now().toString())
-                    .build();
+            return ResponseUtility.success(authData, HttpStatus.CREATED);
 
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
         }catch (EmailAlreadyExistsException e){
-            ApiResponse<LoginDataResponseDTO> errorResponse = ApiResponse.<LoginDataResponseDTO>builder()
-                    .success(false)
-                    .data(null)
-                    .error(ApiError.builder()
-                            .code("DB-002")
-                            .message(e.getMessage())
-                            .build())
-                    .timestamp(LocalDateTime.now().toString())
-                    .build();
 
-            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+            return ResponseUtility.error("DB-002", e.getMessage(), HttpStatus.CONFLICT);
         }
     }
 }

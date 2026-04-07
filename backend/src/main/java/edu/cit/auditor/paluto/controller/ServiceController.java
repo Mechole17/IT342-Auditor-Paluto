@@ -10,6 +10,7 @@ import edu.cit.auditor.paluto.response.ApiError;
 import edu.cit.auditor.paluto.response.ApiResponse;
 import edu.cit.auditor.paluto.service.JwtService;
 import edu.cit.auditor.paluto.service.ServiceService;
+import edu.cit.auditor.paluto.utils.ResponseUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +33,17 @@ public class ServiceController {
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<Service>>> getAllServices() {
-        // MODIFIED: Using Service layer instead of direct Repository call
-        return ResponseEntity.ok(ApiResponse.<List<Service>>builder()
-                .success(true)
-                .data(serviceService.getAllServices())
-                .timestamp(LocalDateTime.now().toString())
-                .build());
+            try {
+                List<Service> services = serviceService.getAllServices();
+
+                // Factory Method handles successful list retrieval
+                return ResponseUtility.success(services, HttpStatus.OK);
+
+            } catch (Exception e) {
+                // Factory Method handles database or processing errors
+                // Code "SRV-002" identifies a retrieval failure
+                return ResponseUtility.error("SRV-002", "Failed to retrieve services: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
     }
 
     @PostMapping("/create")
@@ -51,21 +57,10 @@ public class ServiceController {
             // MODIFIED: Delegation to Service layer
             serviceService.createService(userId, request);
 
-            return new ResponseEntity<>(ApiResponse.<ServiceCreationDTO>builder()
-                    .success(true)
-                    .data(request)
-                    .timestamp(LocalDateTime.now().toString())
-                    .build(), HttpStatus.CREATED);
+            return ResponseUtility.success(request,HttpStatus.CREATED);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(ApiResponse.<ServiceCreationDTO>builder()
-                    .success(false)
-                    .error(ApiError.builder()
-                            .code("SRV-001")
-                            .message(e.getMessage())
-                            .build())
-                    .timestamp(LocalDateTime.now().toString())
-                    .build(), HttpStatus.BAD_REQUEST);
+            return ResponseUtility.error("SRV-001", e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -73,17 +68,10 @@ public class ServiceController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ServiceResponseDTO>> getService(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(ApiResponse.<ServiceResponseDTO>builder()
-                    .success(true)
-                    .data(serviceService.getServiceById(id))
-                    .timestamp(LocalDateTime.now().toString())
-                    .build());
+            ServiceResponseDTO data = serviceService.getServiceById(id);
+            return ResponseUtility.success(data, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(ApiResponse.<ServiceResponseDTO>builder()
-                    .success(false)
-                    .error(ApiError.builder().code("SVC-404").message(e.getMessage()).build())
-                    .timestamp(LocalDateTime.now().toString())
-                    .build(), HttpStatus.NOT_FOUND);
+            return ResponseUtility.error("SRV-003", e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 }
