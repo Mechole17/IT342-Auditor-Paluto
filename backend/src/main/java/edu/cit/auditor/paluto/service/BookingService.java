@@ -9,6 +9,9 @@ import edu.cit.auditor.paluto.entity.Service;
 import edu.cit.auditor.paluto.repository.BookingRepository;
 import edu.cit.auditor.paluto.repository.ServiceRepository;
 import edu.cit.auditor.paluto.repository.UserRepository;
+import edu.cit.auditor.paluto.strategy.PricingStrategy;
+import edu.cit.auditor.paluto.strategy.ScaledPricingStrategy;
+import edu.cit.auditor.paluto.strategy.StandardPricingStrategy;
 import lombok.RequiredArgsConstructor;
 
 
@@ -38,33 +41,23 @@ public class BookingService {
         Cook cook = dish.getCook();
         int qty = dto.getQuantity();
 
-        // 1. Ingredients Cost (Price * Quantity)
-        BigDecimal ingredientsTotal = dish.getIngredientsCost()
-                .multiply(BigDecimal.valueOf(qty));
+        // STEP 1: Select Strategy based on Quantity
+        PricingStrategy strategy = (qty > 1)
+                ? new ScaledPricingStrategy()
+                : new StandardPricingStrategy();
 
-        // 2. SMART SCALING PREP TIME (Matches React Logic)
-        double basePrepTime = dish.getEstPrepTime();
-        double totalPrepTimeMinutes;
+        // STEP 2: Use Strategy for Prep Time
+        double totalPrepTimeMinutes = strategy.calculatePrepTime(dish.getEstPrepTime(), qty);
 
-        if (qty > 1) {
-            // 1st set = 100%, extra sets = 20% each
-            totalPrepTimeMinutes = basePrepTime + (basePrepTime * 0.20 * (qty - 1));
-        } else {
-            totalPrepTimeMinutes = basePrepTime;
-        }
-
-        // 3. Labor Cost calculation
+        // STEP 3: Use Strategy for Labor Cost
         BigDecimal hourlyRate = BigDecimal.valueOf(cook.getHourly_rate());
-        BigDecimal hours = BigDecimal.valueOf(totalPrepTimeMinutes)
-                .divide(BigDecimal.valueOf(60), 4, RoundingMode.HALF_UP);
+        BigDecimal laborTotal = strategy.calculateLaborTotal(hourlyRate, totalPrepTimeMinutes);
 
-        BigDecimal laborTotal = hourlyRate.multiply(hours);
+        // STEP 4: Ingredients and Final Total
+        BigDecimal ingredientsTotal = dish.getIngredientsCost().multiply(BigDecimal.valueOf(qty));
+        BigDecimal finalTotal = ingredientsTotal.add(laborTotal).setScale(2, RoundingMode.HALF_UP);
 
-        // 4. Final Total (Set to 2 decimal places to match UI)
-        BigDecimal finalTotal = ingredientsTotal.add(laborTotal)
-                .setScale(2, RoundingMode.HALF_UP);
-
-        // 5. Build and Save
+        // STEP 5: Build and Save
         Booking booking = Booking.builder()
                 .customer(customer)
                 .cook(cook)
