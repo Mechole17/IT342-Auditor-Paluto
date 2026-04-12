@@ -13,6 +13,10 @@
   }
 }
 
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

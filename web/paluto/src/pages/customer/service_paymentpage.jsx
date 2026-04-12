@@ -9,12 +9,18 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
 
-export default function PaymentPage() {
-    const navigate = useNavigate();
-    const location = useLocation();
 
-    // 1. Data from DTO (Sent from MealDetails)
-    const { service, quantity } = location.state || {};
+    // So if user came back from PayMongo cancel, we restore service from saved state
+    const savedForm = sessionStorage.getItem('paymentFormState');
+    const savedParsed = savedForm ? JSON.parse(savedForm) : null;
+
+export default function PaymentPage() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const { service: stateService, quantity: stateQuantity } = location.state || {};
+    const [service, setService] = useState(stateService || null);
+    const [quantity] = useState(stateService ? stateQuantity : savedParsed?.quantity);
 
     const [selectedDate, setSelectedDate] = useState(null);
     const [bookedDates, setBookedDates] = useState([]); // Array of YYYY-MM-DD strings
@@ -23,6 +29,36 @@ export default function PaymentPage() {
     const [paymentMethod, setPaymentMethod] = useState('');
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    
+
+    useEffect(() => {
+    if (!savedParsed) return;
+
+    // Restore form fields
+    setAddress(savedParsed.address);
+    setTime(savedParsed.time);
+    setPaymentMethod(savedParsed.paymentMethod);
+    setSelectedDate(dayjs(savedParsed.selectedDate));
+
+    // Re-fetch service using saved serviceId
+    const fetchService = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`http://localhost:8080/api/services/${savedParsed.serviceId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setService(res.data.data); // adjust .data.data to match your ApiResponse shape
+        } catch (err) {
+            console.error("Failed to fetch service", err);
+        }
+    };
+
+    fetchService();
+
+    sessionStorage.removeItem('paymentFormState');
+    sessionStorage.removeItem('pendingBooking');
+}, []);
 
     // !! FETCH BUSY DATES
     useEffect(() => {
@@ -61,7 +97,7 @@ export default function PaymentPage() {
     const minDate = dayjs().add(1, 'day');
 
     const Cancel = () => {
-        window.history.back();
+        navigate(`/customer/service-details/${service.id}`);
     };
 
     // --- Official Paluto Logic ---
@@ -80,7 +116,7 @@ export default function PaymentPage() {
     const total            = totalIngredients + laborCost;
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+         e.preventDefault();
 
         const newErrors = {};
         if (!selectedDate) newErrors.date = 'Date is required';
@@ -98,24 +134,45 @@ export default function PaymentPage() {
 
         try {
             const token = localStorage.getItem('token');
-            const payload = {
+
+            // ADDED: Call PayMongo checkout first, not bookings/create
+            const checkoutResponse = await axios.post('http://localhost:8080/api/payment/checkout', {
+                amount: total,
                 serviceId: service.id,
                 quantity: qty,
                 serviceAddress: address,
                 scheduledDate: selectedDate.format('YYYY-MM-DD'),
                 scheduledTime: time + ":00"
-            };
-
-            const response = await axios.post('http://localhost:8080/api/bookings/create', payload, {
+            }, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            if (response.data.success) {
-                alert('Payment successful! For booking date: ' + selectedDate.format('YYYY-MM-DD') + ' at ' + time);
-                navigate('/customer/bookings');
-            }
+            const checkoutUrl = checkoutResponse.data.data.data.attributes.checkout_url;
+
+            // ADDED: Save booking details — used by bookings page to create booking after payment
+            sessionStorage.setItem('pendingBooking', JSON.stringify({
+                serviceId: service.id,
+                quantity: qty,
+                serviceAddress: address,
+                scheduledDate: selectedDate.format('YYYY-MM-DD'),
+                scheduledTime: time + ":00"
+                
+            }));
+
+            sessionStorage.setItem('paymentFormState', JSON.stringify({
+                address,
+                time,
+                paymentMethod,
+                selectedDate: selectedDate.format('YYYY-MM-DD'),
+                serviceId: service.id, // ADDED
+                quantity,              // ADDED
+            }));
+
+            // ADDED: Redirect to PayMongo hosted payment page
+            window.location.href = checkoutUrl;
+
         } catch (error) {
-            alert(error.response?.data?.error?.message || "Booking failed. Please try again.");
+            alert(error.response?.data?.error?.message || "Payment initiation failed. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -236,10 +293,23 @@ export default function PaymentPage() {
                             </button>
                             <button 
                                 type="submit" 
-                                style={styles.payBtn} 
+                                style={{
+                                    ...styles.payBtn,
+                                    opacity: isSubmitting ? 0.7 : 1,
+                                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                }} 
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? 'Processing...' : 'Pay now'}
+                                {isSubmitting ? (
+                                    <>
+                                        <span style={styles.spinner} />
+                                        Processing...
+                                    </>
+                                ) : 'Pay now'}
                             </button>
                         </div>
                     </form>
@@ -251,6 +321,14 @@ export default function PaymentPage() {
 }
 
 const styles = {
+    spinner: {
+        width: '16px',
+        height: '16px',
+        border: '2px solid rgba(255,255,255,0.4)',
+        borderTop: '2px solid #fff',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+    },
     muiInput: {
         '& .MuiOutlinedInput-root': {
             borderRadius: '8px',
@@ -416,4 +494,6 @@ const styles = {
         fontWeight: '700',
         cursor: 'pointer',
     },
+    
 };
+

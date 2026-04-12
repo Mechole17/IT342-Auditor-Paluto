@@ -49,6 +49,36 @@ export default function CustomerBookingsPage() {
         fetchBookings();
     }, []);
 
+    useEffect(() => {
+    const pendingBooking = sessionStorage.getItem('pendingBooking');
+    if (!pendingBooking) return; // Normal visit, no pending payment
+
+    const createBooking = async () => {
+        try {
+            const token = localStorage.getItem('token');
+
+            const response = await axios.post(
+                'http://localhost:8080/api/bookings/create',
+                JSON.parse(pendingBooking),
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+
+            if (response.data.success) {
+                alert('🎉 Booking confirmed! Your booking has been created successfully.');
+            }
+        } catch (error) {
+            alert(
+                error.response?.data?.error?.message ||
+                'Payment was received but booking creation failed. Please contact support.'
+            );
+        } finally {
+            sessionStorage.removeItem('pendingBooking'); // ADDED: always clean up
+        }
+    };
+
+    createBooking();
+}, []);
+
     const filtered = bookings.filter(b => {
         const status = b.status ? b.status.toLowerCase() : '';
         
