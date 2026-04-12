@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @Builder
 public class ServiceResponseDTO {
     private Long id;
+    private Long cookId;
     private String title;
     private String description;
     private String ingredientsList;
