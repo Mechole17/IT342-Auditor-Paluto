@@ -12,7 +12,11 @@ import edu.cit.auditor.paluto.repository.UserRepository;
 import edu.cit.auditor.paluto.strategy.PricingStrategy;
 import edu.cit.auditor.paluto.strategy.ScaledPricingStrategy;
 import edu.cit.auditor.paluto.strategy.StandardPricingStrategy;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 
 import java.math.BigDecimal;
@@ -31,6 +35,22 @@ public class BookingService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
 
+    public void verifyCookAvailability(Long cookId, LocalDate date) {
+        List<String> activeStatuses = List.of("PAID_PENDING", "ACCEPTED", "COMPLETED");
+
+        boolean isBusy = bookingRepository.existsByCookIdAndScheduledDateAndStatusIn(
+                cookId, date, activeStatuses);
+
+        if (isBusy) {
+            throw new RuntimeException("Validation Error: Cook is already booked for this day.");
+        }
+    }
+
+    public List<LocalDate> getBookedDates(Long cookId) {
+        // Only return dates for active bookings
+        return bookingRepository.findBookedDatesByCookId(cookId);
+    }
+    @Transactional
     public Booking createBooking(Long customerId, BookingRequestDTO dto) {
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -39,6 +59,10 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
         Cook cook = dish.getCook();
+
+        LocalDate requestedDate = LocalDate.parse(dto.getScheduledDate());
+        verifyCookAvailability(cook.getId(), requestedDate); //Schedule conflict Resolution
+
         int qty = dto.getQuantity();
 
         // STEP 1: Select Strategy based on Quantity
@@ -65,7 +89,7 @@ public class BookingService {
                 .quantity(qty)
                 .totalAmount(finalTotal)
                 .serviceAddress(dto.getServiceAddress())
-                .scheduledDate(LocalDate.parse(dto.getScheduledDate()))
+                .scheduledDate(requestedDate)
                 .scheduledTime(LocalTime.parse(dto.getScheduledTime()))
                 .status("PAID_PENDING")
                 .build();

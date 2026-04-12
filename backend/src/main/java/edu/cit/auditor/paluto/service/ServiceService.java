@@ -33,6 +33,7 @@ public class ServiceService {
     private ServiceResponseDTO mapToDTO(Service service) {
         return ServiceResponseDTO.builder()
                 .id(service.getId())
+                .cookId(service.getCook().getId())
                 .title(service.getTitle())
                 .description(service.getDescription())
                 .ingredientsList(service.getIngredientsList())

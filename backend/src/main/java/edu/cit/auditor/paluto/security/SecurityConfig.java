@@ -29,9 +29,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/cook/register", "/api/customer/register").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/services/all", "/api/services/{id}").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/bookings/cooks/*/booked-dates").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/bookings/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/api/services/create").hasAuthority("COOK") // Lock it down
                         .requestMatchers("/api/bookings/create").hasAuthority("CUSTOMER")
+                        .requestMatchers("/api/customer/payment/checkout").permitAll()//for testing purposes
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

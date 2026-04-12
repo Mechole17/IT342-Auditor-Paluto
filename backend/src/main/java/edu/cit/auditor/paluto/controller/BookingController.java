@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -37,6 +38,17 @@ public class BookingController {
 
         } catch (Exception e) {
             return ResponseUtility.error("BK-001",e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    @GetMapping("/cooks/{cookId}/booked-dates")
+    public ResponseEntity<ApiResponse<List<LocalDate>>> getBookedDates(@PathVariable Long cookId) {
+        try {
+            List<LocalDate> bookedDates = bookingService.getBookedDates(cookId);
+            return ResponseUtility.success(bookedDates, HttpStatus.OK);
+        }catch (Exception e){
+            return ResponseUtility.error("BUS-002","Failed to Fetch: " + e.getMessage(),HttpStatus.BAD_REQUEST);
         }
     }
 
