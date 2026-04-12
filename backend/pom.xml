@@ -82,7 +82,7 @@
 <!--			<scope>provided</scope>-->
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.38</version> <!-- Use latest stable -->
+            <version>1.18.32</version> <!-- Use latest stable for home pc-->
             <scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -95,6 +95,11 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+        <dependency><!-- for paymongo ingtegration -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
