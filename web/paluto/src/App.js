@@ -12,6 +12,9 @@ import CookRegister from './pages/cook/cook_registrationpage.jsx';
 import CookHomePage from './pages/cook/cook_dashboard.jsx';
 import CookBookings from './pages/cook/cook_bookings.jsx';
 import CookPortfolio from './pages/cook/cook_portfolio.jsx';
+import SelectRole from './pages/public/authentication/select_role.jsx';
+import CustomerExtraDetails from './pages/public/authentication/customer_extra_details.jsx';
+import CookExtraDetails from './pages/public/authentication/cook_extra_details.jsx';
 
 import AuthProvider from './context/AuthContext.jsx';
 import AdminHomePage from './pages/admin/admin_homepage.jsx';
@@ -31,6 +34,9 @@ function App() {
               {/* No layout — standalone pages */}
               <Route path="/customer/register" element={<CustomerRegister />} />
               <Route path="/cook/register" element={<CookRegister />} />
+              <Route path="/select-role" element={<SelectRole />} />
+              <Route path="/register-customer-details" element={<CustomerExtraDetails />} />
+              <Route path="/register-cook-details" element={<CookExtraDetails />} />
 
               {/* Public layout */}
               <Route element={<PublicLayout />}>
