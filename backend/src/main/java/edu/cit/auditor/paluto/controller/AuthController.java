@@ -52,7 +52,7 @@ public class AuthController {
             return ResponseUtility.error("DB-003","Session expired or user not found: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
     }
-
+    //google auth endpoint
     @PostMapping("/register-oauth-final")
     public ResponseEntity<ApiResponse<LoginDataResponseDTO>> registerOAuthFinal(@RequestBody Map<String, Object> data) {
         // We pass the map to AuthService to handle the logic of splitting
