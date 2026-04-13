@@ -7,6 +7,7 @@ import edu.cit.auditor.paluto.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -37,10 +38,11 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // Required for Postman POST requests
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET,"/api/auth/me").authenticated()
                         .requestMatchers("/api/auth/**", "/api/cook/register", "/api/customer/register").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/services/all", "/api/services/{id}").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/bookings/cooks/*/booked-dates").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/bookings/customer/**").hasAuthority("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET,"/api/services/all", "/api/services/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/cooks/*/booked-dates").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/api/services/create").hasAuthority("COOK") // Lock it down
                         .requestMatchers("/api/bookings/create").hasAuthority("CUSTOMER")
                         .requestMatchers("/api/customer/payment/checkout").permitAll()//for testing purposes
@@ -68,6 +70,13 @@ public class SecurityConfig {
             Optional<User> userOptional = userRepository.findByEmail(googleEmail);
 
             if (userOptional.isPresent()) {
+                User user = userOptional.get();
+
+                // THIS IS THE ONLY PLACE THAT RUNS DURING LOGIN
+                if (!"GOOGLE".equalsIgnoreCase(user.getAuth_provider())) {
+                    user.setAuth_provider("GOOGLE");
+                    userRepository.save(user); // Now it will actually save to the DB!
+                }
                 String token = jwtService.generateToken(userOptional.get());
                 response.sendRedirect("http://localhost:3000/oauth-success?token=" + token);
             } else {

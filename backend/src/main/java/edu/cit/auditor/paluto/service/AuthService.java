@@ -10,6 +10,7 @@ import edu.cit.auditor.paluto.repository.CustomerRepository;
 import edu.cit.auditor.paluto.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +49,7 @@ public class AuthService {
                         .firstname(user.getFirstname())
                         .lastname(user.getLastname())
                         .role(user.getRole())
+                        .address(user.getAddress())
                         .build())
                 .accessToken(accessToken)
                 .refreshToken(null)//for implementation next time
@@ -96,6 +98,30 @@ public class AuthService {
             customerRepository.save(newCustomer);
             return generateAuthResponse(newCustomer);
         }
+    }
+
+    public LoginDataResponseDTO getCurrentUser() {
+        // 1. Get the email from the SecurityContext
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 2. Find user or throw custom exception
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User session not found"));
+
+        // 3. Map to DTO (LoginDataResponseDTO.UserResponse)
+        LoginDataResponseDTO.UserResponse userDTO = LoginDataResponseDTO.UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstname(user.getFirstname())
+                .lastname(user.getLastname())
+                .role(user.getRole())
+                .address(user.getAddress()) // Added so React has the address immediately
+                .build();
+
+        return LoginDataResponseDTO.builder()
+                .user(userDTO)
+                .accessToken(null) // Token is already stored in frontend
+                .build();
     }
 
     private LoginDataResponseDTO generateAuthResponse(User user) {

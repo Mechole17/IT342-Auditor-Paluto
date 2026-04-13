@@ -40,11 +40,24 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<LoginDataResponseDTO>> getCurrentUser() {
+        try {
+            // The "Happy Path": Service finds user and returns DTO
+            LoginDataResponseDTO response = authService.getCurrentUser();
+            return ResponseUtility.success(response, HttpStatus.OK);
+        } catch (Exception e) {
+            // The "Safety Net": If token is invalid or user is missing
+            // This prevents the CORS/Redirect loop and tells React what went wrong
+            return ResponseUtility.error("DB-003","Session expired or user not found: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     @PostMapping("/register-oauth-final")
-    public ResponseEntity<LoginDataResponseDTO> registerOAuthFinal(@RequestBody Map<String, Object> data) {
+    public ResponseEntity<ApiResponse<LoginDataResponseDTO>> registerOAuthFinal(@RequestBody Map<String, Object> data) {
         // We pass the map to AuthService to handle the logic of splitting
         // data between User and Cook/Customer tables
         LoginDataResponseDTO response = authService.registerOAuthFinal(data);
-        return ResponseEntity.ok(response);
+        return ResponseUtility.success(response, HttpStatus.CREATED);
     }
 }
