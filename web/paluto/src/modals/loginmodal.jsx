@@ -54,6 +54,11 @@ export default function LoginModal({ onClose }) {
         }
     };
 
+    const handleGoogleSignIn = () => {
+        // This triggers the Spring Security OAuth2 flow
+        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    };
+
     return (
         <div style={modalStyles.overlay} onClick={onClose}>
             <div style={modalStyles.modal} onClick={e => e.stopPropagation()}>
@@ -68,7 +73,7 @@ export default function LoginModal({ onClose }) {
                     </button>
                 </form>
                 <div style={{margin: '20px 0'}}>or sign in with</div>
-                <img src={GoogleLogo} alt="google" style={{width:'40px', cursor:'pointer'}} />
+                <img src={GoogleLogo} alt="google" onClick={handleGoogleSignIn} style={{width:'40px', cursor:'pointer'}} />
             </div>
         </div>
     );

@@ -2,13 +2,21 @@ package edu.cit.auditor.paluto.service;
 
 import edu.cit.auditor.paluto.dto.LoginDataResponseDTO;
 import edu.cit.auditor.paluto.dto.LoginRequestDTO;
+import edu.cit.auditor.paluto.entity.Cook;
+import edu.cit.auditor.paluto.entity.Customer;
 import edu.cit.auditor.paluto.entity.User;
+import edu.cit.auditor.paluto.repository.CookRepository;
+import edu.cit.auditor.paluto.repository.CustomerRepository;
 import edu.cit.auditor.paluto.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +25,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService; // Ensure you have a JwtService for tokens
+    private final CustomerRepository customerRepository;
+    private final CookRepository cookRepository;
 
     public LoginDataResponseDTO authenticate(LoginRequestDTO request) {
         // 1. Find user by email
@@ -39,11 +49,92 @@ public class AuthService {
                         .firstname(user.getFirstname())
                         .lastname(user.getLastname())
                         .role(user.getRole())
+                        .address(user.getAddress())
                         .build())
                 .accessToken(accessToken)
                 .refreshToken(null)//for implementation next time
                 .build();
     }
 
+    @Transactional
+    public LoginDataResponseDTO registerOAuthFinal(Map<String, Object> data) {
+        String role = (String) data.get("role");
+        String email = (String) data.get("email");
 
+        if ("COOK".equals(role)) {
+            // Create a COOK object (which includes User fields)
+            Cook newCook = Cook.builder()
+                    .firstname((String) data.get("firstName"))
+                    .lastname((String) data.get("lastName"))
+                    .email(email)
+                    .password("")
+                    .address((String) data.get("address"))
+                    .role("COOK")
+                    .auth_provider("GOOGLE")
+                    .created_at(LocalDateTime.now())
+
+                    //cook professional details
+                    .hourly_rate(Double.valueOf(data.get("hourly_rate").toString()))
+                    .years_xp(Integer.valueOf(data.get("years_xp").toString()))
+                    .bio((String) data.get("bio"))
+                    .build();
+
+            cookRepository.save(newCook); // Saves to BOTH user and cook tables
+            return generateAuthResponse(newCook);
+
+        } else {
+            // Create a CUSTOMER object
+            Customer newCustomer = Customer.builder()
+                    .email(email)
+                    .firstname((String) data.get("firstName"))
+                    .lastname((String) data.get("lastName"))
+                    .address((String) data.get("address"))
+                    .role("CUSTOMER")
+                    .auth_provider("GOOGLE")
+                    .created_at(LocalDateTime.now())
+                    .password("")
+                    .build();
+
+            customerRepository.save(newCustomer);
+            return generateAuthResponse(newCustomer);
+        }
+    }
+
+    public LoginDataResponseDTO getCurrentUser() {
+        // 1. Get the email from the SecurityContext
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 2. Find user or throw custom exception
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User session not found"));
+
+        // 3. Map to DTO (LoginDataResponseDTO.UserResponse)
+        LoginDataResponseDTO.UserResponse userDTO = LoginDataResponseDTO.UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstname(user.getFirstname())
+                .lastname(user.getLastname())
+                .role(user.getRole())
+                .address(user.getAddress()) // Added so React has the address immediately
+                .build();
+
+        return LoginDataResponseDTO.builder()
+                .user(userDTO)
+                .accessToken(null) // Token is already stored in frontend
+                .build();
+    }
+
+    private LoginDataResponseDTO generateAuthResponse(User user) {
+        String token = jwtService.generateToken(user);
+        return LoginDataResponseDTO.builder()
+                .accessToken(token)
+                .user(LoginDataResponseDTO.UserResponse.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .firstname(user.getFirstname())
+                        .lastname(user.getLastname())
+                        .role(user.getRole())
+                        .build())
+                .build();
+    }
 }

@@ -51,8 +51,8 @@ public class BookingService {
         return bookingRepository.findBookedDatesByCookId(cookId);
     }
     @Transactional
-    public Booking createBooking(Long customerId, BookingRequestDTO dto) {
-        User customer = userRepository.findById(customerId)
+    public Booking createBooking(String customerEmail, BookingRequestDTO dto) {
+        User customer = userRepository.findByEmail(customerEmail)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         Service dish = serviceRepository.findById(dto.getServiceId())

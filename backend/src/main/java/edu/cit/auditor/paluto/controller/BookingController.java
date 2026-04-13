@@ -31,8 +31,8 @@ public class BookingController {
             @RequestBody BookingRequestDTO request,
             Authentication authentication) {
         try {
-            Long customerId = Long.parseLong(authentication.getName());
-             bookingService.createBooking(customerId, request);
+            String customerEmail = authentication.getName();
+             bookingService.createBooking(customerEmail, request);
 
             return ResponseUtility.success(request, HttpStatus.CREATED);
 

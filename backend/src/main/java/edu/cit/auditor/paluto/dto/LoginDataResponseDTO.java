@@ -33,5 +33,6 @@ public class LoginDataResponseDTO {
         private String firstname;
         private String lastname;
         private String role;
+        private String address;
     }
 }
