@@ -79,7 +79,7 @@ export default function CustomerRegister() {
                 login(user, accessToken);
 
                 // 3. Redirect directly to their dashboard (Role-Aware)
-                if (user.role === 'CUSTOMER') navigate('/customer/home');
+                if (user.role === 'CUSTOMER') navigate('/customer');
                 console.log(response);
                 alert("Account created successfully! Welcome to PALUTO! You are now logged in as a customer.");
             }

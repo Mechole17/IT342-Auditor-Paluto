@@ -85,7 +85,7 @@ export default function CookRegister() {
                 login(user, accessToken);
 
                 // 3. Redirect directly to their dashboard (Role-Aware)
-                if (user.role === 'COOK') navigate('/cook/home');
+                if (user.role === 'COOK') navigate('/cook');
                 console.log(response);
                 alert("Account created successfully! Welcome to PALUTO! You are now logged in as a cook.");
             }

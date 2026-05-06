@@ -1,6 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+
+// MUI Calendar Imports
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import dayjs from 'dayjs';
 
 export default function PaymentPage() {
     const navigate = useNavigate();
@@ -9,21 +16,53 @@ export default function PaymentPage() {
     // 1. Data from DTO (Sent from MealDetails)
     const { service, quantity } = location.state || {};
 
-    const [date, setDate] = useState('');
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [bookedDates, setBookedDates] = useState([]); // Array of YYYY-MM-DD strings
     const [time, setTime] = useState('');
     const [address, setAddress] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('');
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // !! FETCH BUSY DATES
+    useEffect(() => {
+    // We create a helper function inside the effect
+    const fetchDates = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await axios.get(`http://localhost:8080/api/bookings/cooks/${service.cookId}/booked-dates`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                // Unwrap the ApiResponse
+                if (res.data && res.data.data) {
+                    setBookedDates(res.data.data);
+                }
+            } catch (err) {
+                // Handle error (e.g., logging or setting an error state)
+                console.error("Failed to load booked dates", err);
+                setBookedDates([]); 
+            }
+        };
+
+        if (service?.cookId) {
+            fetchDates();
+        }
+    }, [service?.cookId]);
+
+    // !! GREY-OUT LOGIC
+    const shouldDisableDate = (date) => {
+        const dateString = date.format('YYYY-MM-DD');
+        const isPast = date.isBefore(dayjs(), 'day');
+        const isBooked = bookedDates.includes(dateString);
+        return isPast || isBooked; // Disable if past or already booked
+    };
+
+    const minDate = dayjs().add(1, 'day');
+
     const Cancel = () => {
         window.history.back();
     };
-
-    // Date validation
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const minDate = tomorrow.toISOString().split('T')[0];
 
     // --- Official Paluto Logic ---
     const ingredientCostPerSet = Number(service?.ingredientsCost) || 0;
@@ -44,7 +83,7 @@ export default function PaymentPage() {
         e.preventDefault();
 
         const newErrors = {};
-        if (!date) newErrors.date = 'Date is required';
+        if (!selectedDate) newErrors.date = 'Date is required';
         if (!time) newErrors.time = 'Time is required';
         if (!address.trim()) newErrors.address = 'Address is required';
         if (!paymentMethod || paymentMethod === '') newErrors.paymentMethod = 'Please select a payment method';
@@ -63,7 +102,7 @@ export default function PaymentPage() {
                 serviceId: service.id,
                 quantity: qty,
                 serviceAddress: address,
-                scheduledDate: date,
+                scheduledDate: selectedDate.format('YYYY-MM-DD'),
                 scheduledTime: time + ":00"
             };
 
@@ -72,7 +111,7 @@ export default function PaymentPage() {
             });
 
             if (response.data.success) {
-                alert('Payment successful! For booking date: ' + date + ' at ' + time);
+                alert('Payment successful! For booking date: ' + selectedDate.format('YYYY-MM-DD') + ' at ' + time);
                 navigate('/customer/bookings');
             }
         } catch (error) {
@@ -85,8 +124,9 @@ export default function PaymentPage() {
     if (!service) return <div style={styles.wrapper}><h2>No service data found.</h2></div>;
 
     return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div style={styles.wrapper}>
-            <h2 style={styles.pageTitle}>Payment</h2>
+            <h2 style={styles.pageTitle}>Booking</h2>
 
             <div style={styles.content}>
                 {/* Left Column */}
@@ -125,22 +165,26 @@ export default function PaymentPage() {
                         <div style={styles.dateTimeRow}>
                             <div style={styles.fieldGroupHalf}>
                                 <label style={styles.label}>Date</label>
-                                <input
-                                    type="date"
-                                    value={date}
-                                    min={minDate}
-                                    onChange={e => setDate(e.target.value)}
-                                    style={styles.input}
-                                />
+                                <DatePicker
+                                        value={selectedDate}
+                                        onChange={(val) => setSelectedDate(val)}
+                                        minDate={minDate}
+                                        shouldDisableDate={shouldDisableDate} // !! GREY OUT CALL
+                                        slotProps={{ textField: { size: 'small', sx: styles.muiInput } }}
+                                    />
                                 {errors.date && <span style={styles.errorText}>{errors.date}</span>}
                             </div>
                             <div style={styles.fieldGroupHalf}>
                                 <label style={styles.label}>Time</label>
-                                <input
-                                    type="time"
-                                    value={time}
-                                    onChange={e => setTime(e.target.value)}
-                                    style={styles.input}
+                                <TimePicker
+                                    value={time ? dayjs(time, 'HH:mm') : null} // Convert string back to dayjs for MUI
+                                    onChange={(newValue) => setTime(newValue ? newValue.format('HH:mm') : '')}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: styles.muiInput // Reuse the same styles as the DatePicker!
+                                        }
+                                    }}
                                 />
                                 {errors.time && <span style={styles.errorText}>{errors.time}</span>}
                             </div>
@@ -202,10 +246,25 @@ export default function PaymentPage() {
                 </div>
             </div>
         </div>
+        </LocalizationProvider>
     );
 }
 
 const styles = {
+    muiInput: {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+            height: '42px',
+            backgroundColor: 'white',
+            fontSize: '14px'
+        },
+        // !! THIS PART MAKES THE CALENDAR POPUP VISIBLY GREY OUT DISABLED DATES
+        '& .MuiPickersDay-root.Mui-disabled': {
+            color: '#ccc !important',
+            backgroundColor: '#f5f5f5 !important',
+            textDecoration: 'line-through'
+        }
+    },
     form: {
         display: 'flex',
         flexDirection: 'column',

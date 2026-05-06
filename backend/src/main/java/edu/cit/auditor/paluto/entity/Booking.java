@@ -1,6 +1,7 @@
 package edu.cit.auditor.paluto.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,18 +23,20 @@ public class Booking {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cook_id", nullable = false)
+    @JsonIgnoreProperties({"bookings", "services", "user"})//remove if /me endpoint eror occurs
     private Cook cook;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
-//    @JsonIgnore
-    private User customer;
+    @JsonIgnoreProperties("bookings")//remove if /me endpoint eror occurs
+    private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", nullable = false)
     private Service service;
 
     private int quantity;
+    @Column(precision = 19, scale = 2)
     private BigDecimal totalAmount; // Better than float for PHP
     @Builder.Default
     private String status = "PAID_PENDING"; // PENDING, ACCEPTED, REJECTED, COMPLETED, CANCELLED
