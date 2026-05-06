@@ -1,8 +1,11 @@
 package edu.cit.auditor.paluto.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
 
 @Entity
 @Setter
@@ -11,8 +14,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 public class Cook extends User {
-    private Double hourly_rate;
-    private Integer years_xp;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal hourlyRate;
+    private Integer yearsXp;
     private String bio;
 
 }

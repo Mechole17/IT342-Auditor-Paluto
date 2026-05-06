@@ -2,10 +2,7 @@ package edu.cit.auditor.paluto.service;
 
 import edu.cit.auditor.paluto.dto.BookingRequestDTO;
 import edu.cit.auditor.paluto.dto.BookingResponseDTO;
-import edu.cit.auditor.paluto.entity.Booking;
-import edu.cit.auditor.paluto.entity.Cook;
-import edu.cit.auditor.paluto.entity.User;
-import edu.cit.auditor.paluto.entity.Service;
+import edu.cit.auditor.paluto.entity.*;
 import edu.cit.auditor.paluto.repository.BookingRepository;
 import edu.cit.auditor.paluto.repository.ServiceRepository;
 import edu.cit.auditor.paluto.repository.UserRepository;
@@ -52,7 +49,7 @@ public class BookingService {
     }
     @Transactional
     public Booking createBooking(String customerEmail, BookingRequestDTO dto) {
-        User customer = userRepository.findByEmail(customerEmail)
+        Customer customer = (Customer) userRepository.findByEmail(customerEmail)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         Service dish = serviceRepository.findById(dto.getServiceId())
@@ -71,10 +68,10 @@ public class BookingService {
                 : new StandardPricingStrategy();
 
         // STEP 2: Use Strategy for Prep Time
-        double totalPrepTimeMinutes = strategy.calculatePrepTime(dish.getEstPrepTime(), qty);
+        int totalPrepTimeMinutes = strategy.calculatePrepTime(dish.getEstPrepTime(), qty);
 
         // STEP 3: Use Strategy for Labor Cost
-        BigDecimal hourlyRate = BigDecimal.valueOf(cook.getHourly_rate());
+        BigDecimal hourlyRate = (cook.getHourlyRate() != null) ? cook.getHourlyRate() : BigDecimal.ZERO;
         BigDecimal laborTotal = strategy.calculateLaborTotal(hourlyRate, totalPrepTimeMinutes);
 
         // STEP 4: Ingredients and Final Total

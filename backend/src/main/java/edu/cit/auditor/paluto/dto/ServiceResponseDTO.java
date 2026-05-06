@@ -1,5 +1,6 @@
 package edu.cit.auditor.paluto.dto;
 
+import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
 
@@ -19,5 +20,6 @@ public class ServiceResponseDTO {
     private Integer servingSize;
 
     // Add the missing piece here!
-    private Double cookHourlyRate;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal cookHourlyRate;
 }

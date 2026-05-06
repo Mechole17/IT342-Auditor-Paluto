@@ -73,8 +73,8 @@ public class SecurityConfig {
                 User user = userOptional.get();
 
                 // THIS IS THE ONLY PLACE THAT RUNS DURING LOGIN
-                if (!"GOOGLE".equalsIgnoreCase(user.getAuth_provider())) {
-                    user.setAuth_provider("GOOGLE");
+                if (!"GOOGLE".equalsIgnoreCase(user.getAuthProvider())) {
+                    user.setAuthProvider("GOOGLE");
                     userRepository.save(user); // Now it will actually save to the DB!
                 }
                 String token = jwtService.generateToken(userOptional.get());

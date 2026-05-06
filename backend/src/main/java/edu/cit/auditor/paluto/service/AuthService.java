@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,12 +71,16 @@ public class AuthService {
                     .password("")
                     .address((String) data.get("address"))
                     .role("COOK")
-                    .auth_provider("GOOGLE")
-                    .created_at(LocalDateTime.now())
+                    .authProvider("GOOGLE")
+                    .createdAt(LocalDateTime.now())
 
                     //cook professional details
-                    .hourly_rate(Double.valueOf(data.get("hourly_rate").toString()))
-                    .years_xp(Integer.valueOf(data.get("years_xp").toString()))
+                    .hourlyRate(data.get("hourly_rate") != null
+                            ? new BigDecimal(data.get("hourly_rate").toString())
+                            : BigDecimal.ZERO)
+                    .yearsXp(data.get("years_xp") != null
+                            ? Integer.valueOf(data.get("years_xp").toString())
+                            : 0)
                     .bio((String) data.get("bio"))
                     .build();
 
@@ -90,8 +95,8 @@ public class AuthService {
                     .lastname((String) data.get("lastName"))
                     .address((String) data.get("address"))
                     .role("CUSTOMER")
-                    .auth_provider("GOOGLE")
-                    .created_at(LocalDateTime.now())
+                    .authProvider("GOOGLE")
+                    .createdAt(LocalDateTime.now())
                     .password("")
                     .build();
 

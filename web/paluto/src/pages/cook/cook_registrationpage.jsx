@@ -18,8 +18,8 @@ export default function CookRegister() {
         email: '',
         password: '',
         confirmPassword: '',
-        hourly_rate: '',
-        years_xp: '',
+        hourlyRate: '',
+        yearsXp: '',
         bio: ''
     });
 
@@ -67,7 +67,7 @@ export default function CookRegister() {
     const handleSubmit = async (e) => {
         
         // Final numeric check (Min 0)
-        if (formData.hourly_rate < 0 || formData.years_xp < 0) {
+        if (formData.hourlyRate < 0 || formData.yearsXp < 0) {
             setError("Hourly rate and experience cannot be negative.");
             return;
         }
@@ -163,10 +163,10 @@ export default function CookRegister() {
                     ) : (
                         <>
                             <label style={{fontSize: '14px', color: '#666'}}>Hourly Rate (₱)</label>
-                            <input name="hourly_rate" type="number" min="0" placeholder="0.00" style={styles.input} onChange={handleChange} value={formData.hourly_rate} required />
+                            <input name="hourlyRate" type="number" min="0" placeholder="0.00" style={styles.input} onChange={handleChange} value={formData.hourlyRate} required />
                             
                             <label style={{fontSize: '14px', color: '#666'}}>Years of Experience</label>
-                            <input name="years_xp" type="number" min="0" placeholder="0" style={styles.input} onChange={handleChange} value={formData.years_xp} required />
+                            <input name="yearsXp" type="number" min="0" placeholder="0" style={styles.input} onChange={handleChange} value={formData.yearsXp} required />
                             
                             <textarea 
                                 name="bio" 

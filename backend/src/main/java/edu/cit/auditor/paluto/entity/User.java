@@ -27,7 +27,7 @@ public class User {
     private String password;
     private String role;
     private String address;
-    private String auth_provider;
+    private String authProvider;
 
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 }

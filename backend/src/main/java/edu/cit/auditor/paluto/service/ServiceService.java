@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @org.springframework.stereotype.Service
@@ -42,7 +43,7 @@ public class ServiceService {
                 .estPrepTime(service.getEstPrepTime())
                 .servingSize(service.getServingSize())
                 // Pulling the Double rate from the hidden Cook object
-                .cookHourlyRate(service.getCook() != null ? service.getCook().getHourly_rate() : 0.0)
+                .cookHourlyRate(service.getCook() != null ? service.getCook().getHourlyRate() : BigDecimal.ZERO)
                 .build();
     }
 
