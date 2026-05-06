@@ -52,10 +52,10 @@ public class ServiceController {
             Authentication authentication) {
         try {
             // MODIFIED: Using Spring Security 'Authentication' instead of 'JwtService'
-            Long userId = Long.parseLong(authentication.getName());
+            String email = authentication.getName();
 
             // MODIFIED: Delegation to Service layer
-            serviceService.createService(userId, request);
+            serviceService.createService(email, request);
 
             return ResponseUtility.success(request,HttpStatus.CREATED);
 
@@ -72,6 +72,17 @@ public class ServiceController {
             return ResponseUtility.success(data, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtility.error("SRV-003", e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/my-services")
+    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> getMyServices(Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            List<ServiceResponseDTO> services = serviceService.getServicesByCook(email);
+            return ResponseUtility.success(services, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("SRV-002", e.getMessage() + "Error fetching services.", HttpStatus.BAD_REQUEST);
         }
     }
 }
