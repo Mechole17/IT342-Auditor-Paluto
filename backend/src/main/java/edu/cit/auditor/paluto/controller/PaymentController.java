@@ -5,6 +5,7 @@ import edu.cit.auditor.paluto.service.PaymentService;
 import edu.cit.auditor.paluto.utils.ResponseUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
@@ -17,19 +18,24 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/checkout")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> checkout(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> checkout(@RequestBody Map<String, Object> request, Authentication authentication) {
         try {
-            Double amount = Double.valueOf(request.get("amount").toString());
-            Long serviceId = Long.valueOf(request.get("serviceId").toString()); // CHANGED: was bookingId
-
-            Map<String, Object> paymongoData = paymentService.createPaymongoCheckout(amount, serviceId);
-
-            // Using your utility for success
+            String email = authentication.getName();
+            Map<String, Object> paymongoData = paymentService.initiateCheckout(email, request);
             return ResponseUtility.success(paymongoData, HttpStatus.OK);
-
         } catch (Exception e) {
-            // Using your utility for error with the SDD code PAY-001
             return ResponseUtility.error("PAY-001", "Payment Error: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/webhook")
+    public ResponseEntity<?> handleWebhook(@RequestBody Map<String, Object> payload) {
+        try {
+            paymentService.handleWebhook(payload);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.out.println("Webhook error: " + e.getMessage());
+            return ResponseEntity.ok().build();
         }
     }
 }

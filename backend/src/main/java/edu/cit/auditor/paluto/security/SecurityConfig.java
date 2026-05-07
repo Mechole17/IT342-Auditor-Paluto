@@ -46,7 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/services/create").hasAuthority("COOK") // Lock it down
                         .requestMatchers("/api/bookings/create").hasAuthority("CUSTOMER")
                         .requestMatchers("/api/storage/service-upload").hasAuthority("COOK") // ADD THIS
-                        .requestMatchers("/api/customer/payment/checkout").permitAll()//for testing purposes
+                        .requestMatchers("/api/payment/webhook").permitAll()
+                        .requestMatchers("/api/payment/checkout").hasAuthority("CUSTOMER")
                         .anyRequest().authenticated()
                 )
 

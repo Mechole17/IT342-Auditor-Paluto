@@ -8,44 +8,45 @@ export default function CustomerBookingsPage() {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                // 1. MATCH THE KEY: Your AuthContext uses 'userData'
-                const userStr = localStorage.getItem('userData');
-                const token = localStorage.getItem('token');
-                
-                if (!userStr || !token) {
-                    console.error("No user or token found in localStorage");
-                    setLoading(false);
-                    return;
-                }
-
-                const userData = JSON.parse(userStr);
-                
-                // 2. USE DYNAMIC ID: Extracting the ID we just added to the DTO
-                const userId = userData.id;
-
-                if (!userId) {
-                    console.error("User ID is missing from storage!", userData);
-                    setLoading(false);
-                    return;
-                }
-
-                // 3. DYNAMIC URL: Using backticks and the userId variable
-                const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.data.success) {
-                    setBookings(response.data.data);
-                }
-            } catch (error) {
-                console.error("Fetch failed:", error.response?.data || error.message);
-            } finally {
+    const fetchBookings = async () => {
+        try {
+            // 1. MATCH THE KEY: Your AuthContext uses 'userData'
+            const userStr = localStorage.getItem('userData');
+            const token = localStorage.getItem('token');
+            
+            if (!userStr || !token) {
+                console.error("No user or token found in localStorage");
                 setLoading(false);
+                return;
             }
-        };
+
+            const userData = JSON.parse(userStr);
+            
+            // 2. USE DYNAMIC ID: Extracting the ID we just added to the DTO
+            const userId = userData.id;
+
+            if (!userId) {
+                console.error("User ID is missing from storage!", userData);
+                setLoading(false);
+                return;
+            }
+
+            // 3. DYNAMIC URL: Using backticks and the userId variable
+            const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.data.success) {
+                setBookings(response.data.data);
+            }
+        } catch (error) {
+            console.error("Fetch failed:", error.response?.data || error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchBookings();
     }, []);
 
