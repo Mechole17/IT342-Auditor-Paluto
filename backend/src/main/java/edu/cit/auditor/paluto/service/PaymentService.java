@@ -1,6 +1,6 @@
 package edu.cit.auditor.paluto.service;
 
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,13 +13,13 @@ import java.util.Map;
 @Service
 public class PaymentService {
 
-    // Hardcoded for your initial test
-    private final String your_key = "";
+    @Value("${paymongo.test.key}")
+    private String paymongoKey;
 
     public Map<String, Object> createPaymongoCheckout(double amount, Long bookingId) {
         WebClient webClient = WebClient.builder()
                 .baseUrl("https://api.paymongo.com/v1")
-                .defaultHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((your_key + ":").getBytes()))
+                .defaultHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((paymongoKey + ":").getBytes()))
                 .build();
 
         // Prepare the payload according to PayMongo API docs
