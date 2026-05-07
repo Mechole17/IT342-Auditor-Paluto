@@ -9,6 +9,11 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
 
+
+    // So if user came back from PayMongo cancel, we restore service from saved state
+    const savedForm = sessionStorage.getItem('paymentFormState');
+    const savedParsed = savedForm ? JSON.parse(savedForm) : null;
+
 export default function PaymentPage() {
     const location = useLocation();
     const navigate = useNavigate();
