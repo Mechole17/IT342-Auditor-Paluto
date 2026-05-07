@@ -38,8 +38,8 @@ public class CustomerService {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .address(dto.getAddress())
                 .role("CUSTOMER") // Follows your role naming convention
-                .auth_provider("LOCAL")
-                .created_at(LocalDateTime.now())
+                .authProvider("LOCAL")
+                .createdAt(LocalDateTime.now())
                 .build();
 
         return customerRepository.save(newCustomer);

@@ -20,6 +20,27 @@ export default function CustomerRegister() {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    // --- STYLES (Keep your existing styles, just showing the component structure) ---
+    const styles = {
+        container: { display: 'flex', height: '100vh', width: '100vw', fontFamily: 'Arial, sans-serif', overflow: 'hidden' },
+        leftSide: { flex: 1, backgroundColor: '#ecb92a', display: 'flex', flexDirection: 'column', padding: '40px', position: 'relative' },
+        logo: { fontSize: '32px', fontWeight: '900', color: '#000', marginBottom: '50px', cursor: 'pointer' },
+        foodImg: { width: '85%', margin: 'auto' },
+        rightSide: { flex: 1, backgroundColor: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 80px' },
+        title: { fontSize: '42px', fontWeight: 'bold', marginBottom: '10px' },
+        errorTxt: { 
+            color: '#c40303', 
+            fontWeight: 'bold', 
+            marginBottom: '15px', 
+            fontSize: '13px',
+            padding: '10px',
+        },
+        inputGroup: { display: 'flex', gap: '20px' },
+        input: { width: '100%', padding: '12px', margin: '8px 0', borderRadius: '12px', border: '1.5px solid #7b7a7a', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
+        loginLink: { textAlign: 'right', marginTop: '15px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+        loginBtn: { backgroundColor: '#0A0A1F', color: '#fff', padding: '16px 80px', borderRadius: '15px', fontWeight: 'bold', fontSize: '18px', border: 'none', alignSelf: 'center', marginTop: '30px', cursor: 'pointer', opacity: isLoading ? 0.7 : 1 }
+    };
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -57,6 +78,9 @@ export default function CustomerRegister() {
         const validationError = validateForm();
         if (validationError) {
             setError(validationError);
+            if(validationError.includes("Password")) {
+                setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+            }
             return;
         }
 
@@ -79,7 +103,7 @@ export default function CustomerRegister() {
                 login(user, accessToken);
 
                 // 3. Redirect directly to their dashboard (Role-Aware)
-                if (user.role === 'CUSTOMER') navigate('/customer/home');
+                if (user.role === 'CUSTOMER') navigate('/customer');
                 console.log(response);
                 alert("Account created successfully! Welcome to PALUTO! You are now logged in as a customer.");
             }
@@ -108,27 +132,6 @@ export default function CustomerRegister() {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    // --- STYLES (Keep your existing styles, just showing the component structure) ---
-    const styles = {
-        container: { display: 'flex', height: '100vh', width: '100vw', fontFamily: 'Arial, sans-serif', overflow: 'hidden' },
-        leftSide: { flex: 1, backgroundColor: '#ecb92a', display: 'flex', flexDirection: 'column', padding: '40px', position: 'relative' },
-        logo: { fontSize: '32px', fontWeight: '900', color: '#000', marginBottom: '50px', cursor: 'pointer' },
-        foodImg: { width: '85%', margin: 'auto' },
-        rightSide: { flex: 1, backgroundColor: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 80px' },
-        title: { fontSize: '42px', fontWeight: 'bold', marginBottom: '10px' },
-        errorTxt: { 
-            color: '#c40303', 
-            fontWeight: 'bold', 
-            marginBottom: '15px', 
-            fontSize: '13px',
-            padding: '10px',
-        },
-        inputGroup: { display: 'flex', gap: '20px' },
-        input: { width: '100%', padding: '12px', margin: '8px 0', borderRadius: '12px', border: '1.5px solid #7b7a7a', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
-        loginLink: { textAlign: 'right', marginTop: '15px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
-        loginBtn: { backgroundColor: '#0A0A1F', color: '#fff', padding: '16px 80px', borderRadius: '15px', fontWeight: 'bold', fontSize: '18px', border: 'none', alignSelf: 'center', marginTop: '30px', cursor: 'pointer', opacity: isLoading ? 0.7 : 1 }
     };
 
     return (

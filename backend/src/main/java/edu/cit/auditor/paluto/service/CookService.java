@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -32,11 +33,11 @@ public class CookService {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .address(dto.getAddress())
                 .role("COOK")
-                .auth_provider("LOCAL")
-                .created_at(LocalDateTime.now())
+                .authProvider("LOCAL")
+                .createdAt(LocalDateTime.now())
                 //COOK attr
-                .hourly_rate(dto.getHourly_rate())
-                .years_xp(dto.getYears_xp())
+                .hourlyRate(dto.getHourlyRate() != null ? dto.getHourlyRate() : BigDecimal.ZERO)
+                .yearsXp(dto.getYearsXp())
                 .bio(dto.getBio())
                 .build();
 

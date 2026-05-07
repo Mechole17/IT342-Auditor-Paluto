@@ -1,11 +1,13 @@
 package edu.cit.auditor.paluto.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -31,18 +33,19 @@ public class CookRegistrationDTO {
     private String password;
     private String role;
 
-    private String auth_provider;
-    private LocalDateTime created_at;
+    private String authProvider;
+    private LocalDateTime createdAt;
 
     //Cook attr
 
     @NotNull(message = "Hourly rate is required")
     @Min(value = 0, message = "Hourly rate cannot be negative")
-    private Double hourly_rate;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal hourlyRate;
 
     @NotNull(message = "Years of experience is required")
     @Min(value = 0, message = "Years of experience cannot be negative")
-    private Integer years_xp;
+    private Integer yearsXp;
     @Size(max = 500, message = "Bio cannot exceed 500 characters")
     private String bio;
 

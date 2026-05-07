@@ -34,6 +34,6 @@ public class CustomerRegistrationDTO {
     private String password;
     private String role;
 
-    private String auth_provider;
-    private LocalDateTime created_at;
+    private String authProvider;
+    private LocalDateTime createdAt;
 }
