@@ -8,76 +8,47 @@ export default function CustomerBookingsPage() {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                // 1. MATCH THE KEY: Your AuthContext uses 'userData'
-                const userStr = localStorage.getItem('userData');
-                const token = localStorage.getItem('token');
-                
-                if (!userStr || !token) {
-                    console.error("No user or token found in localStorage");
-                    setLoading(false);
-                    return;
-                }
-
-                const userData = JSON.parse(userStr);
-                
-                // 2. USE DYNAMIC ID: Extracting the ID we just added to the DTO
-                const userId = userData.id;
-
-                if (!userId) {
-                    console.error("User ID is missing from storage!", userData);
-                    setLoading(false);
-                    return;
-                }
-
-                // 3. DYNAMIC URL: Using backticks and the userId variable
-                const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.data.success) {
-                    setBookings(response.data.data);
-                }
-            } catch (error) {
-                console.error("Fetch failed:", error.response?.data || error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchBookings();
-    }, []);
-
-    useEffect(() => {
-    const pendingBooking = sessionStorage.getItem('pendingBooking');
-    if (!pendingBooking) return; // Normal visit, no pending payment
-
-    const createBooking = async () => {
+    const fetchBookings = async () => {
         try {
+            // 1. MATCH THE KEY: Your AuthContext uses 'userData'
+            const userStr = localStorage.getItem('userData');
             const token = localStorage.getItem('token');
+            
+            if (!userStr || !token) {
+                console.error("No user or token found in localStorage");
+                setLoading(false);
+                return;
+            }
 
-            const response = await axios.post(
-                'http://localhost:8080/api/bookings/create',
-                JSON.parse(pendingBooking),
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
+            const userData = JSON.parse(userStr);
+            
+            // 2. USE DYNAMIC ID: Extracting the ID we just added to the DTO
+            const userId = userData.id;
+
+            if (!userId) {
+                console.error("User ID is missing from storage!", userData);
+                setLoading(false);
+                return;
+            }
+
+            // 3. DYNAMIC URL: Using backticks and the userId variable
+            const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
             if (response.data.success) {
-                alert('🎉 Booking confirmed! Your booking has been created successfully.');
+                setBookings(response.data.data);
             }
         } catch (error) {
-            alert(
-                error.response?.data?.error?.message ||
-                'Payment was received but booking creation failed. Please contact support.'
-            );
+            console.error("Fetch failed:", error.response?.data || error.message);
         } finally {
-            sessionStorage.removeItem('pendingBooking'); // ADDED: always clean up
+            setLoading(false);
         }
     };
 
-    createBooking();
-}, []);
+    useEffect(() => {
+        fetchBookings();
+    }, []);
 
     const filtered = bookings.filter(b => {
         const status = b.status ? b.status.toLowerCase() : '';

@@ -9,18 +9,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
 
-
-    // So if user came back from PayMongo cancel, we restore service from saved state
-    const savedForm = sessionStorage.getItem('paymentFormState');
-    const savedParsed = savedForm ? JSON.parse(savedForm) : null;
-
 export default function PaymentPage() {
     const location = useLocation();
     const navigate = useNavigate();
 
     const { service: stateService, quantity: stateQuantity } = location.state || {};
     const [service, setService] = useState(stateService || null);
-    const [quantity] = useState(stateService ? stateQuantity : savedParsed?.quantity);
+    const [quantity, setQuantity] = useState(stateService ? stateQuantity : 1);
 
     const [selectedDate, setSelectedDate] = useState(null);
     const [bookedDates, setBookedDates] = useState([]); // Array of YYYY-MM-DD strings
@@ -33,32 +28,36 @@ export default function PaymentPage() {
     
 
     useEffect(() => {
-    if (!savedParsed) return;
+        // Only restore from sessionStorage if we have no state from navigation
+        if (stateService) return;
 
-    // Restore form fields
-    setAddress(savedParsed.address);
-    setTime(savedParsed.time);
-    setPaymentMethod(savedParsed.paymentMethod);
-    setSelectedDate(dayjs(savedParsed.selectedDate));
+        const savedForm = sessionStorage.getItem('paymentFormState');
+        if (!savedForm) return;
 
-    // Re-fetch service using saved serviceId
-    const fetchService = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:8080/api/services/${savedParsed.serviceId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setService(res.data.data); // adjust .data.data to match your ApiResponse shape
-        } catch (err) {
-            console.error("Failed to fetch service", err);
-        }
-    };
+        const savedParsed = JSON.parse(savedForm);
 
-    fetchService();
+        setAddress(savedParsed.address);
+        setTime(savedParsed.time);
+        setPaymentMethod(savedParsed.paymentMethod);
+        setSelectedDate(dayjs(savedParsed.selectedDate));
+        setQuantity(savedParsed.quantity);
 
-    sessionStorage.removeItem('paymentFormState');
-    sessionStorage.removeItem('pendingBooking');
-}, []);
+        const fetchService = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await axios.get(`http://localhost:8080/api/services/${savedParsed.serviceId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                setService(res.data.data);
+            } catch (err) {
+                console.error("Failed to fetch service", err);
+            }
+        };
+
+        fetchService();
+        sessionStorage.removeItem('paymentFormState');
+        sessionStorage.removeItem('pendingBooking');
+    }, []);
 
     // !! FETCH BUSY DATES
     useEffect(() => {
@@ -148,16 +147,6 @@ export default function PaymentPage() {
             });
 
             const checkoutUrl = checkoutResponse.data.data.data.attributes.checkout_url;
-
-            // ADDED: Save booking details — used by bookings page to create booking after payment
-            sessionStorage.setItem('pendingBooking', JSON.stringify({
-                serviceId: service.id,
-                quantity: qty,
-                serviceAddress: address,
-                scheduledDate: selectedDate.format('YYYY-MM-DD'),
-                scheduledTime: time + ":00"
-                
-            }));
 
             sessionStorage.setItem('paymentFormState', JSON.stringify({
                 address,
