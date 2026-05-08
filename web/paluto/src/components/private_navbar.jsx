@@ -14,7 +14,7 @@ const NAV_LINKS = {
         { label: 'Portfolio', to: '/cook/portfolio', style: 'link' },
     ],
     ADMIN: [
-        { label: 'Dashboard', to: '/admin', style: 'orangeBadge' },
+        { label: 'Dashboard', to: '/admin', style: 'blackBadge' },
         { label: 'Users', to: '/admin/users', style: 'link' },
     ],
 };
@@ -23,7 +23,7 @@ const NAV_LINKS = {
 const ACTIVE_BADGE = {
     CUSTOMER: 'orangeBadge',
     COOK: 'redBadge',
-    ADMIN: 'orangeBadge',
+    ADMIN: 'blackBadge',
 };
 
 export default function PrivateNavbar() {
@@ -77,6 +77,8 @@ const navStyles = {
     link: { color: '#666', cursor: 'pointer' },
     orangeBadge: { backgroundColor: '#FF8A00', color: '#fff', padding: '5px 20px', borderRadius: '15px', border: 'none', cursor: 'pointer', display: 'inline-flex',
     alignItems: 'center',},
+    blackBadge: { backgroundColor: '#000000', color: '#fff', padding: '5px 20px', borderRadius: '15px', border: 'none', cursor: 'pointer', display: 'inline-flex',
+    alignItems: 'center', },
     redBadge:    { backgroundColor: '#E53935', color: '#fff', padding: '5px 20px', borderRadius: '15px', border: 'none', cursor: 'pointer', display: 'inline-flex',
     alignItems: 'center', },
     lightBtn: { backgroundColor: '#f0f0f0', border: 'none', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer' },
