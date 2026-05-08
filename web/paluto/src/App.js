@@ -17,11 +17,14 @@ import CustomerExtraDetails from './pages/public/authentication/customer_extra_d
 import CookExtraDetails from './pages/public/authentication/cook_extra_details.jsx';
 import OAuthSuccess from './pages/public/authentication/oauth_success_page.jsx';
 
+import AdminLayout from './layout/admin_layout.jsx';
+import AdminUsers from './pages/admin/admin_users.jsx';
+
 import PublicRoute from './context/PublicRoute.jsx';
 import CookProfile from './pages/public/cook_profile.jsx';
+import AdminHomePage from './pages/admin/admin_homepage.jsx';
 
 import AuthProvider from './context/AuthContext.jsx';
-import AdminHomePage from './pages/admin/admin_homepage.jsx';
 import ProtectedRoute from './context/protectedRoutes.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
@@ -80,10 +83,12 @@ function App() {
             {/* Admin layout wraps all /admin/* pages */}
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminHomePage />
+                <AdminLayout />
               </ProtectedRoute>
             }>
-              </Route>
+              <Route index element={<AdminHomePage />} />  {/* /admin */}
+              <Route path="users" element={<AdminUsers />} /> {/* /admin/users */}
+            </Route>
 
             </Routes>
           </AuthProvider>
