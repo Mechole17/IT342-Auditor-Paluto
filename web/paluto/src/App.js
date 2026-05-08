@@ -17,6 +17,8 @@ import CustomerExtraDetails from './pages/public/authentication/customer_extra_d
 import CookExtraDetails from './pages/public/authentication/cook_extra_details.jsx';
 import OAuthSuccess from './pages/public/authentication/oauth_success_page.jsx';
 
+import PublicRoute from './context/PublicRoute.jsx';
+
 import AuthProvider from './context/AuthContext.jsx';
 import AdminHomePage from './pages/admin/admin_homepage.jsx';
 import ProtectedRoute from './context/protectedRoutes.jsx';
@@ -33,15 +35,15 @@ function App() {
           <AuthProvider>
             <Routes>
               {/* No layout — standalone pages */}
-              <Route path="/customer/register" element={<CustomerRegister />} />
-              <Route path="/cook/register" element={<CookRegister />} />
+              <Route path="/customer/register" element={<PublicRoute><CustomerRegister /></PublicRoute>} />
+              <Route path="/cook/register" element={<PublicRoute><CookRegister /></PublicRoute>} />
               <Route path="/select-role" element={<SelectRole />} />
               <Route path="/register-customer-details" element={<CustomerExtraDetails />} />
               <Route path="/register-cook-details" element={<CookExtraDetails />} />
               <Route path="/oauth-success" element={<OAuthSuccess />} />
 
               {/* Public layout */}
-              <Route element={<PublicLayout />}>
+              <Route element={<PublicRoute><PublicLayout /></PublicRoute>}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/cooks" element={<Cooks />} />
               </Route>
