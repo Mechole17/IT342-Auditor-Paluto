@@ -1,6 +1,7 @@
 package edu.cit.auditor.paluto.service;
 
 import edu.cit.auditor.paluto.dto.CookRegistrationDTO;
+import edu.cit.auditor.paluto.dto.CookResponseDTO;
 import edu.cit.auditor.paluto.entity.Cook;
 import edu.cit.auditor.paluto.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.repository.CookRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -42,5 +44,31 @@ public class CookService {
                 .build();
 
         return cookRepository.save(newCook);
+    }
+
+    public List<CookResponseDTO> getAllCooks() {
+        return cookRepository.findAll().stream()
+                .map(cook -> CookResponseDTO.builder()
+                        .id(cook.getId())
+                        .firstname(cook.getFirstname())
+                        .lastname(cook.getLastname())
+                        .hourlyRate(cook.getHourlyRate())
+                        .yearsXp(cook.getYearsXp())
+                        .bio(cook.getBio())
+                        .build())
+                .toList();
+    }
+
+    public CookResponseDTO getCookById(Long id) {
+        Cook cook = cookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cook not found."));
+        return CookResponseDTO.builder()
+                .id(cook.getId())
+                .firstname(cook.getFirstname())
+                .lastname(cook.getLastname())
+                .hourlyRate(cook.getHourlyRate())
+                .yearsXp(cook.getYearsXp())
+                .bio(cook.getBio())
+                .build();
     }
 }

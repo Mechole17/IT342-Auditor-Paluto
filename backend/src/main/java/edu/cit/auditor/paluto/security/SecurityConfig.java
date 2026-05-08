@@ -42,6 +42,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/cook/register", "/api/customer/register").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/services/all", "/api/services/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bookings/cooks/*/booked-dates").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cook/all").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/services/cook/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cook/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bookings/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/api/services/create").hasAuthority("COOK") // Lock it down
                         .requestMatchers("/api/bookings/create").hasAuthority("CUSTOMER")
