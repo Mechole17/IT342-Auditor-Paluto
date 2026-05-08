@@ -20,4 +20,13 @@ public class BookingResponseDTO {
     private String scheduledDate;
     private String scheduledTime;
     private String status; // PENDING, ACCEPTED, etc.
+    private String customerName;
+    private String cookName;     // Add this
+    private String serviceAddress;
+
+    private String acceptedAt;
+    private String rejectedAt;
+    private String completedAt;
+    private String cancelledAt;
+    private String createdAt;
 }
