@@ -57,14 +57,4 @@ The system implements the **Strategy Pattern** to dynamically calculate costs ba
 
 ---
 
-## 👨‍💻 Engineering Intuition
-
-This project emphasizes **System Reliability** and **Data Cleanliness**:
-
-* **Atomic Validation:** By only recording paid bookings, the system ensures that every entry in the `booking` table represents real revenue and confirmed schedules.
-* **Port 6543:** Chosen to bypass school firewalls (like CIT-U Wi-Fi) that often block the standard Postgres port.
-* **Escaped Identifiers:** Strategic use of double-quoting (`"user"`, `"booking"`) to manage PostgreSQL's strict reserved-word policy.
-
----
-
 *Developed as a Solo Project for the BSIT Program CSIT342 course at Cebu Institute of Technology – University.*
