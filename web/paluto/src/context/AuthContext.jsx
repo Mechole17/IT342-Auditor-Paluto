@@ -1,6 +1,7 @@
 // src/context/AuthContext.js
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import LoginModal from '../modals/loginmodal.jsx';
 
 const AuthContext = createContext(null);
 
@@ -8,6 +9,7 @@ export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
     
 
     useEffect(() => {
@@ -69,9 +71,13 @@ export default function AuthProvider({ children }) {
         localStorage.removeItem('userData');
     };
 
+    const openLoginModal = () => setIsLoginOpen(true); 
+    const closeLoginModal = () => setIsLoginOpen(false); 
+
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, loading, openLoginModal }}>
             {!loading && children}
+            {isLoginOpen && <LoginModal onClose={closeLoginModal} />}
         </AuthContext.Provider>
     );
 }
