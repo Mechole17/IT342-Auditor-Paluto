@@ -1,18 +1,54 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import BookingDetailsModal from "./bookings_details_modal";
+
 export default function CookHomePage() {
+    const { user, token } = useAuth();
+    const [stats, setStats] = useState({ completedBookings: 0, upcomingBookings: 0, averageRating: 0 });
+    const [activeBookings, setActiveBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const [selectedBooking, setSelectedBooking] = useState(null);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            if (!user?.id) return;
+            try {
+                const [statsRes, bookingsRes] = await Promise.all([
+                    axios.get(`http://localhost:8080/api/bookings/cook/${user.id}/stats`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }),
+                    axios.get(`http://localhost:8080/api/bookings/cook/${user.id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                ]);
+
+                setStats(statsRes.data.data);
+                // Filter only 'ACCEPTED' bookings for the "Active" section of the dashboard
+                const active = (bookingsRes.data.data || []).filter(b => b.status === 'ACCEPTED');
+                setActiveBookings(active);
+            } catch (err) {
+                console.error("Dashboard fetch error", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [user]);
+
     const KPI = [
-        { label: 'Total Orders', value: 120 },
-        { label: 'Upcoming Bookings', value: 5 },
-        { label: 'Average Rating', value: 4.8 },
+        { label: 'Completed Bookings', value: stats.completedBookings },
+        { label: 'Upcoming Bookings', value: stats.upcomingBookings },
+        { label: 'Average Rating', value: stats.averageRating },
     ];
 
-    const active_bookings = [
-    { img: 'https://www.italiarail.com/sites/default/files/styles/poproutes_main/public/2019-12/feast%20of%207%20fishes%20-%20shutterstock_1230950803_Fotor.jpg',menu: 'Italian Feast', date: '2024-07-15', time: '18:00', customer: 'John Doe', quantity: 2 },
-    { img: 'https://mondrianhotels.com/wp-content/uploads/sites/34/2024/06/mondrian-doha-events-steak-and-sushi-1920x1280-1.jpg', menu: 'Sushi Night', date: '2024-07-20', time: '19:30', customer: 'Jane Smith', quantity: 4 },
-    ];
+    if (loading) return <div style={styles.wrapper}>Loading Dashboard...</div>;
 
     return (
         <div style={styles.wrapper}>
-            <h1>Dashboard</h1>
+            <h1 style={{ marginBottom: '24px' }}>Dashboard</h1>
             <div style={styles.row}>
                 {KPI.map((kpi, index) => (
                     <div key={index} style={styles.card}>
@@ -22,49 +58,57 @@ export default function CookHomePage() {
                 ))}
             </div>
 
-            <div>
-                <h1>Active Bookings</h1>
-                {active_bookings.map((booking, index) => (
-                    <div key={index} style={styles.bookingCard}>
-                        {/* Image */}
-                        <img
-                            src={booking.img}
-                            alt={booking.menu}
-                            style={styles.bookingImg}
-                        />
+            <div style={{ marginTop: '40px' }}>
+                <h1 style={{ marginBottom: '20px' }}>Active Bookings</h1>
+                {activeBookings.length === 0 ? (
+                    <p style={{ color: '#aaa' }}>No active bookings at the moment.</p>
+                ) : (
+                    activeBookings.map((booking, index) => (
+                        <div key={index} style={styles.bookingCard}>
+                            <img
+                                src={booking.serviceImage || 'https://via.placeholder.com/120x90'}
+                                alt={booking.serviceTitle}
+                                style={styles.bookingImg}
+                            />
 
-                        {/* Menu + Customer */}
-                        <div style={styles.bookingInfo}>
-                            <p style={styles.bookingMenu}>{booking.menu}</p>
-                            <p style={styles.bookingCustomer}>{booking.customer}</p>
+                            <div style={styles.bookingInfo}>
+                                <p style={styles.bookingMenu}>{booking.serviceTitle}</p>
+                                <p style={styles.bookingCustomer}>{booking.customerName || "Customer"}</p>
+                            </div>
+
+                            <div style={styles.bookingCol}>
+                                <p style={styles.bookingColLabel}>Qty</p>
+                                <p style={styles.bookingColValue}>{booking.quantity}</p>
+                            </div>
+
+                            <div style={styles.bookingCol}>
+                                <p style={styles.bookingColLabel}>Date</p>
+                                <p style={styles.bookingColValue}>{booking.scheduledDate}</p>
+                            </div>
+
+                            <div style={styles.bookingCol}>
+                                <p style={styles.bookingColLabel}>Time</p>
+                                <p style={styles.bookingColValue}>{booking.scheduledTime}</p>
+                            </div>
+
+                            <button style={styles.detailsBtn} onClick={() => setSelectedBooking(booking)}>
+                                Details
+                            </button>
                         </div>
-
-                        {/* Qty */}
-                        <div style={styles.bookingCol}>
-                            <p style={styles.bookingColLabel}>Qty</p>
-                            <p style={styles.bookingColValue}>{booking.quantity}</p>
-                        </div>
-
-                        {/* Date */}
-                        <div style={styles.bookingCol}>
-                            <p style={styles.bookingColLabel}>Date</p>
-                            <p style={styles.bookingColValue}>{booking.date}</p>
-                        </div>
-
-                        {/* Time */}
-                        <div style={styles.bookingCol}>
-                            <p style={styles.bookingColLabel}>Time</p>
-                            <p style={styles.bookingColValue}>{booking.time}</p>
-                        </div>
-
-                        {/* Details Button */}
-                        <button style={styles.detailsBtn}>Details</button>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
+            {selectedBooking && (
+                <BookingDetailsModal 
+                    booking={selectedBooking} 
+                    onClose={() => setSelectedBooking(null)} 
+                />
+            )}
         </div>
     );
 }
+
+// Keep your existing styles object here
 
 const styles = {
     wrapper: {
