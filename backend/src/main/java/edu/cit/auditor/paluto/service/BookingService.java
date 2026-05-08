@@ -21,7 +21,9 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Service
@@ -128,6 +130,21 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
+        if ("REJECT".equalsIgnoreCase(action)) {
+            // Logic for triggering PayMongo refund would go here
+            booking.setStatus("REJECTED_REFUNDED");
+        } else if ("COMPLETE".equalsIgnoreCase(action)) {
+            LocalDateTime now = LocalDateTime.now();
+            // Combine date and time from the booking entity
+            LocalDateTime schedule = LocalDateTime.of(booking.getScheduledDate(), booking.getScheduledTime());
+
+            if (now.isBefore(schedule)) {
+                throw new IllegalStateException("Cannot complete a booking before the scheduled time.");
+            }
+        } else {
+            booking.setStatus(status);
+        }
+
         booking.setStatus(status);
         LocalDateTime now = LocalDateTime.now();
 
@@ -139,5 +156,81 @@ public class BookingService {
         }
 
         bookingRepository.save(booking);
+    }
+
+    public List<BookingResponseDTO> getCookBookings(Long cookId) {
+        return bookingRepository.findByCookIdOrderByCreatedAtDesc(cookId).stream()
+                .map(booking -> BookingResponseDTO.builder()
+                        .id(booking.getId())
+                        // You can add customer details here later if you update your DTO
+                        .serviceTitle(booking.getService().getTitle())
+                        .serviceImage(booking.getService().getImageUrl())
+                        .quantity(booking.getQuantity())
+                        .totalAmount(booking.getTotalAmount())
+                        .scheduledDate(booking.getScheduledDate().toString())
+                        .scheduledTime(booking.getScheduledTime().toString())
+                        .status(booking.getStatus() != null ? booking.getStatus() : "PAID_PENDING")
+                        .customerName(booking.getCustomer().getFirstname() + " " + booking.getCustomer().getLastname())
+                        .serviceAddress(booking.getServiceAddress())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, Object> getCookDashboardStats(Long cookId) {
+        List<BookingResponseDTO> bookings = getCookBookings(cookId);
+
+        long completedBookings = bookings.stream()
+                .filter(b -> "COMPLETED".equalsIgnoreCase(b.getStatus()) ||
+                        "ACCEPTED".equalsIgnoreCase(b.getStatus()))
+                .count();
+
+        long upcoming = bookings.stream()
+                .filter(b -> "ACCEPTED".equalsIgnoreCase(b.getStatus()))
+                .count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("completedBookings", completedBookings);
+        stats.put("upcomingBookings", upcoming);
+        stats.put("averageRating", 4.8); // Placeholder
+
+        return stats;
+    }
+
+    // Add this method to your BookingService class
+    public BookingResponseDTO getBookingDetails(Long id, String email) {
+        // 1. Find the user by email to get their ID
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Long currentUserId = user.getId();
+
+        // 2. Find the booking
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        // 3. Secure Ownership Check
+        if (!booking.getCustomer().getId().equals(currentUserId) &&
+                !booking.getCook().getId().equals(currentUserId)) {
+            throw new RuntimeException("Unauthorized access to booking details");
+        }
+
+        // 4. Map and Return (using your existing builder)
+        return BookingResponseDTO.builder()
+                .id(booking.getId())
+                .serviceTitle(booking.getService().getTitle())
+                .serviceImage(booking.getService().getImageUrl())
+                .quantity(booking.getQuantity())
+                .totalAmount(booking.getTotalAmount())
+                .scheduledDate(booking.getScheduledDate().toString())
+                .scheduledTime(booking.getScheduledTime().toString())
+                .status(booking.getStatus())
+                .serviceAddress(booking.getServiceAddress())
+                .customerName(booking.getCustomer().getFirstname() + " " + booking.getCustomer().getLastname())
+                .cookName(booking.getCook().getFirstname() + " " + booking.getCook().getLastname())
+                .createdAt(booking.getCreatedAt() != null ? booking.getCreatedAt().toString() : null)
+                .acceptedAt(booking.getAcceptedAt() != null ? booking.getAcceptedAt().toString() : null)
+                .completedAt(booking.getCompletedAt() != null ? booking.getCompletedAt().toString() : null)
+                .rejectedAt(booking.getRejectedAt() != null ? booking.getRejectedAt().toString() : null)
+                .build();
     }
 }
