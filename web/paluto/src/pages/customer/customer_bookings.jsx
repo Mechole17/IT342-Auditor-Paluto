@@ -1,37 +1,30 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import BookingDetailsModal from "../cook/bookings_details_modal";
 const TABS = ['Active', 'Completed', 'Rejected'];
 
 export default function CustomerBookingsPage() {
     const [activeTab, setActiveTab] = useState('Active');
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // === NEW STATE FOR MODAL ===
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
     const fetchBookings = async () => {
         try {
-            // 1. MATCH THE KEY: Your AuthContext uses 'userData'
             const userStr = localStorage.getItem('userData');
             const token = localStorage.getItem('token');
             
             if (!userStr || !token) {
-                console.error("No user or token found in localStorage");
                 setLoading(false);
                 return;
             }
 
             const userData = JSON.parse(userStr);
-            
-            // 2. USE DYNAMIC ID: Extracting the ID we just added to the DTO
             const userId = userData.id;
 
-            if (!userId) {
-                console.error("User ID is missing from storage!", userData);
-                setLoading(false);
-                return;
-            }
-
-            // 3. DYNAMIC URL: Using backticks and the userId variable
+            // Updated this to the general customer endpoint
             const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -51,43 +44,36 @@ export default function CustomerBookingsPage() {
     }, []);
 
     useEffect(() => {
-    const pendingBooking = sessionStorage.getItem('pendingBooking');
-    if (!pendingBooking) return; // Normal visit, no pending payment
+        const pendingBooking = sessionStorage.getItem('pendingBooking');
+        if (!pendingBooking) return;
 
-    const createBooking = async () => {
-        try {
-            const token = localStorage.getItem('token');
+        const createBooking = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.post(
+                    'http://localhost:8080/api/bookings/create',
+                    JSON.parse(pendingBooking),
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
 
-            const response = await axios.post(
-                'http://localhost:8080/api/bookings/create',
-                JSON.parse(pendingBooking),
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-
-            if (response.data.success) {
-                alert('🎉 Booking confirmed! Your booking has been created successfully.');
+                if (response.data.success) {
+                    alert('🎉 Booking confirmed!');
+                    fetchBookings(); // Refresh list after creation
+                }
+            } catch (error) {
+                alert('Booking creation failed. Please contact support.');
+            } finally {
+                sessionStorage.removeItem('pendingBooking');
             }
-        } catch (error) {
-            alert(
-                error.response?.data?.error?.message ||
-                'Payment was received but booking creation failed. Please contact support.'
-            );
-        } finally {
-            sessionStorage.removeItem('pendingBooking'); // ADDED: always clean up
-        }
-    };
-
-    createBooking();
-}, []);
+        };
+        createBooking();
+    }, []);
 
     const filtered = bookings.filter(b => {
         const status = b.status ? b.status.toLowerCase() : '';
-        
-        if (activeTab === 'Active') {
-            return status === 'paid_pending' || status === 'accepted' || status === 'pending';
-        }
+        if (activeTab === 'Active') return ['paid_pending', 'accepted', 'pending'].includes(status);
         if (activeTab === 'Completed') return status === 'completed';
-        if (activeTab === 'Rejected') return status === 'rejected' || status === 'cancelled';
+        if (activeTab === 'Rejected') return ['rejected', 'cancelled'].includes(status);
         return false;
     });
 
@@ -137,15 +123,31 @@ export default function CustomerBookingsPage() {
                                 }}>
                                     {booking.status.replace('_', ' ')}
                                 </p>
-                                <button style={styles.detailsBtn}>Details</button>
+                                
+                                {/* === TRIGGER MODAL === */}
+                                <button 
+                                    style={styles.detailsBtn}
+                                    onClick={() => setSelectedBooking(booking)}
+                                >
+                                    Details
+                                </button>
                             </div>
                         </div>
                     ))
                 )}
             </div>
+
+            {/* === RENDER MODAL === */}
+            {selectedBooking && (
+                <BookingDetailsModal 
+                    booking={selectedBooking} 
+                    onClose={() => setSelectedBooking(null)} 
+                />
+            )}
         </div>
     );
 }
+
 
 const styles = {
     wrapper: {
