@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';  // ← add useLocation
-import LoginModal from '../modals/loginmodal.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const NAV_LINKS = [
     { label: 'Home', to: '/' },
@@ -10,7 +9,7 @@ const NAV_LINKS = [
 export default function PublicNavbar() {
     const navigate = useNavigate();
     const location = useLocation();  // ← add this
-    const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const { openLoginModal } = useAuth();
 
     return (
         <>
@@ -35,12 +34,10 @@ export default function PublicNavbar() {
                     </div>
                 </div>
 
-                <button style={navStyles.navyBtn} onClick={() => setIsLoginOpen(true)}>
+                <button style={navStyles.navyBtn} onClick={openLoginModal}>
                     sign in
                 </button>
             </nav>
-
-            {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} />}
         </>
     );
 }

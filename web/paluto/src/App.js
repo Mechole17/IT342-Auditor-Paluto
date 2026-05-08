@@ -18,6 +18,7 @@ import CookExtraDetails from './pages/public/authentication/cook_extra_details.j
 import OAuthSuccess from './pages/public/authentication/oauth_success_page.jsx';
 
 import PublicRoute from './context/PublicRoute.jsx';
+import CookProfile from './pages/public/cook_profile.jsx';
 
 import AuthProvider from './context/AuthContext.jsx';
 import AdminHomePage from './pages/admin/admin_homepage.jsx';
@@ -46,6 +47,7 @@ function App() {
               <Route element={<PublicRoute><PublicLayout /></PublicRoute>}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/cooks" element={<Cooks />} />
+                <Route path="/cooks/:id" element={<CookProfile />} />
               </Route>
           
             {/* Customer layout wraps all /customer/* pages */}
@@ -56,6 +58,7 @@ function App() {
               }>
               <Route index element={<CustomerHomePage />} />  {/* /customer */}
               <Route path="cooks" element={<CustomerCooks />} /> {/* /customer/cooks */}
+              <Route path="cooks/:id" element={<CookProfile />} />
               <Route path="bookings" element={<CustomerBookings />} /> {/* /customer/bookings */}
               <Route path="service-details/:id" element={<ServiceDetails />} /> {/* /customer/service-details */}
               <Route path="service-payment" element={<PaymentPage />} /> {/* /customer/payment */}
