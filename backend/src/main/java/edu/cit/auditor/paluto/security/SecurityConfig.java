@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/storage/service-upload").hasAuthority("COOK") // ADD THIS
                         .requestMatchers("/api/payment/webhook").permitAll()
                         .requestMatchers("/api/payment/checkout").hasAuthority("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET,"api/admin/user").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
 
