@@ -83,4 +83,14 @@ public class ServiceService {
                 .map(this::mapToDTO)
                 .toList();
     }
+
+    public List<ServiceResponseDTO> getServicesByCookId(Long cookId) {
+        Cook cook = cookRepository.findById(cookId)
+                .orElseThrow(() -> new RuntimeException("Cook not found."));
+
+        return serviceRepository.findByCook(cook)
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
 }

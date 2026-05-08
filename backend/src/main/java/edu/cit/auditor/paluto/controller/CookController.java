@@ -1,6 +1,7 @@
 package edu.cit.auditor.paluto.controller;
 
 import edu.cit.auditor.paluto.dto.CookRegistrationDTO;
+import edu.cit.auditor.paluto.dto.CookResponseDTO;
 import edu.cit.auditor.paluto.dto.LoginDataResponseDTO;
 import edu.cit.auditor.paluto.entity.Cook;
 import edu.cit.auditor.paluto.exception.EmailAlreadyExistsException;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cook")
@@ -42,6 +44,26 @@ public class CookController {
         }catch (EmailAlreadyExistsException e){
 
             return ResponseUtility.error("DB-002", e.getMessage(), HttpStatus.CONFLICT);
+        }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<CookResponseDTO>>> getAllCooks() {
+        try {
+            List<CookResponseDTO> cooks = cookService.getAllCooks();
+            return ResponseUtility.success(cooks, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("CK-001", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CookResponseDTO>> getCookById(@PathVariable Long id) {
+        try {
+            CookResponseDTO cook = cookService.getCookById(id);
+            return ResponseUtility.success(cook, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("CK-002", e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 }

@@ -85,4 +85,14 @@ public class ServiceController {
             return ResponseUtility.error("SRV-002", e.getMessage() + "Error fetching services.", HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/cook/{cookId}/services")
+    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> getServicesByCookId(@PathVariable Long cookId) {
+        try {
+            List<ServiceResponseDTO> services = serviceService.getServicesByCookId(cookId);
+            return ResponseUtility.success(services, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("SRV-004", e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
 }
