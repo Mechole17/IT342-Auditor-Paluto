@@ -1,5 +1,7 @@
-package edu.cit.auditor.paluto.booking;
+package edu.cit.auditor.paluto.payment;
 
+import edu.cit.auditor.paluto.booking.BookingRequestDTO;
+import edu.cit.auditor.paluto.booking.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;

@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.booking;
+package edu.cit.auditor.paluto.payment;
 
 import edu.cit.auditor.paluto.infrastructure.common.ApiResponse;
 import edu.cit.auditor.paluto.infrastructure.common.ResponseUtility;
