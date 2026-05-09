@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.users;
 
 import edu.cit.auditor.paluto.core.entities.User;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;

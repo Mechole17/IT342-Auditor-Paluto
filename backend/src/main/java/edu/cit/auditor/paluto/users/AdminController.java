@@ -1,8 +1,7 @@
-package edu.cit.auditor.paluto.controller;
+package edu.cit.auditor.paluto.users;
 
 import edu.cit.auditor.paluto.core.entities.User;
 import edu.cit.auditor.paluto.infrastructure.common.ApiResponse;
-import edu.cit.auditor.paluto.service.UserService;
 import edu.cit.auditor.paluto.infrastructure.common.ResponseUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

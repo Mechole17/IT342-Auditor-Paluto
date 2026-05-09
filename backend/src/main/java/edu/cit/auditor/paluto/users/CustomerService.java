@@ -1,6 +1,5 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.users;
 
-import edu.cit.auditor.paluto.dto.CustomerRegistrationDTO;
 import edu.cit.auditor.paluto.core.entities.Customer;
 import edu.cit.auditor.paluto.infrastructure.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.core.repositories.CustomerRepository;

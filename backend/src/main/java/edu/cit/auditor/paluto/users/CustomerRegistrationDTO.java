@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.dto;
+package edu.cit.auditor.paluto.users;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

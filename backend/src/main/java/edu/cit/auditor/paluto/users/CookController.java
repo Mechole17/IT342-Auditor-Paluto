@@ -1,13 +1,10 @@
-package edu.cit.auditor.paluto.controller;
+package edu.cit.auditor.paluto.users;
 
-import edu.cit.auditor.paluto.dto.CookRegistrationDTO;
-import edu.cit.auditor.paluto.dto.CookResponseDTO;
 import edu.cit.auditor.paluto.authentication.LoginDataResponseDTO;
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.infrastructure.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.infrastructure.common.ApiResponse;
-import edu.cit.auditor.paluto.service.CookService;
-import edu.cit.auditor.paluto.service.JwtService;
+import edu.cit.auditor.paluto.infrastructure.security.JwtService;
 import edu.cit.auditor.paluto.infrastructure.common.ResponseUtility;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

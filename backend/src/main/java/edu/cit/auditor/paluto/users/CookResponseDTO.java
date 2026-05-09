@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.dto;
+package edu.cit.auditor.paluto.users;
 
 import lombok.Builder;
 import lombok.Data;

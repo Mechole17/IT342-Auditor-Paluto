@@ -1,7 +1,5 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.users;
 
-import edu.cit.auditor.paluto.dto.CookRegistrationDTO;
-import edu.cit.auditor.paluto.dto.CookResponseDTO;
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.infrastructure.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.core.repositories.CookRepository;
