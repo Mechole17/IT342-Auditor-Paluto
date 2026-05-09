@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../core/context/AuthContext";
 import BookingDetailsModal from "./bookings_details_modal";
 
 const TABS = ['Requests', 'Upcoming', 'History'];

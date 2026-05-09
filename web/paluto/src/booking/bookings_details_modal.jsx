@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../core/context/AuthContext';
 
 export default function BookingDetailsModal({ booking: initialBooking, onClose }) {
     const { user } = useAuth(); 

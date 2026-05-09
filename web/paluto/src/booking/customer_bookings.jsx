@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import BookingDetailsModal from "../cook/bookings_details_modal";
+import BookingDetailsModal from "./bookings_details_modal";
 const TABS = ['Active', 'Completed', 'Rejected'];
 
 export default function CustomerBookingsPage() {
