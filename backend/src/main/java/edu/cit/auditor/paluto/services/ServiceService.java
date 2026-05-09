@@ -53,6 +53,17 @@ public class ServiceService {
         Cook cook = cookRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Cook profile not found."));
 
+        if (request.getIngredientsCost() != null &&
+                request.getIngredientsCost().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Ingredients cost cannot be negative.");
+        }
+        if (request.getEstPrepTime() != null && request.getEstPrepTime() < 0) {
+            throw new RuntimeException("Prep time cannot be negative.");
+        }
+        if (request.getServingSize() != null && request.getServingSize() < 0) {
+            throw new RuntimeException("Serving size cannot be negative.");
+        }
+
         Service newService = Service.builder()
                 .cook(cook)
                 .title(request.getTitle())
