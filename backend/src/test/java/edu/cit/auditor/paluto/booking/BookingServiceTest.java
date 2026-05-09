@@ -132,9 +132,9 @@ public class BookingServiceTest {
         when(bookingRepository.save(any(Booking.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
-        bookingService.updateStatus(1L, "REJECTED", "REJECT");
+        bookingService.updateStatus(1L, "REJECTED_REFUNDED", "REJECT");
 
-        assertEquals("REJECTED", booking.getStatus());
+        assertEquals("REJECTED_REFUNDED", booking.getStatus());
         assertNotNull(booking.getRejectedAt());
         verify(bookingRepository, times(1)).save(booking);
     }
