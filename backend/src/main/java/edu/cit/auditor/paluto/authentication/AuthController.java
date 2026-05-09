@@ -1,10 +1,7 @@
-package edu.cit.auditor.paluto.controller;
+package edu.cit.auditor.paluto.authentication;
 
-import edu.cit.auditor.paluto.dto.LoginDataResponseDTO;
-import edu.cit.auditor.paluto.dto.LoginRequestDTO;
 import edu.cit.auditor.paluto.infrastructure.common.ApiResponse;
-import edu.cit.auditor.paluto.service.AuthService;
-import edu.cit.auditor.paluto.service.JwtService;
+import edu.cit.auditor.paluto.infrastructure.security.JwtService;
 import edu.cit.auditor.paluto.infrastructure.common.ResponseUtility;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

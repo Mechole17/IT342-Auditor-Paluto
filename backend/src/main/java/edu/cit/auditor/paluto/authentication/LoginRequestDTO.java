@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.dto;
+package edu.cit.auditor.paluto.authentication;
 
 import lombok.Data;
 

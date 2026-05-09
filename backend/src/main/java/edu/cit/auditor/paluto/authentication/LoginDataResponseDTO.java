@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.dto;
+package edu.cit.auditor.paluto.authentication;
 
 import edu.cit.auditor.paluto.core.entities.User;
 import lombok.AllArgsConstructor;

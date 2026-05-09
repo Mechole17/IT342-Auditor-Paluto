@@ -1,13 +1,12 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.authentication;
 
-import edu.cit.auditor.paluto.dto.LoginDataResponseDTO;
-import edu.cit.auditor.paluto.dto.LoginRequestDTO;
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.core.entities.Customer;
 import edu.cit.auditor.paluto.core.entities.User;
 import edu.cit.auditor.paluto.core.repositories.CookRepository;
 import edu.cit.auditor.paluto.core.repositories.CustomerRepository;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
+import edu.cit.auditor.paluto.infrastructure.security.JwtService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
