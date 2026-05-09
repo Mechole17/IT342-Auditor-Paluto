@@ -1,7 +1,5 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.services;
 
-import edu.cit.auditor.paluto.dto.ServiceCreationDTO;
-import edu.cit.auditor.paluto.dto.ServiceResponseDTO;
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.core.entities.Service;
 import edu.cit.auditor.paluto.core.entities.User;
