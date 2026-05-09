@@ -1,9 +1,9 @@
 // src/components/LoginModal.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../core/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import GoogleLogo from '../asset/google-con.jpg';
+import GoogleLogo from '../../asset/google-con.jpg';
 
 export default function LoginModal({ onClose }) {
     const { login } = useAuth();
