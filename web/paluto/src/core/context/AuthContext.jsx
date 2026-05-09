@@ -1,7 +1,7 @@
 // src/context/AuthContext.js
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import LoginModal from '../../modals/loginmodal.jsx';
+import LoginModal from '../../authentication/modals/loginmodal.jsx';
 
 const AuthContext = createContext(null);
 
