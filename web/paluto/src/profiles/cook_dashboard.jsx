@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
-import BookingDetailsModal from "./bookings_details_modal";
+import { useAuth } from "../core/context/AuthContext";
+import BookingDetailsModal from "../booking/bookings_details_modal";
 
 export default function CookHomePage() {
     const { user, token } = useAuth();

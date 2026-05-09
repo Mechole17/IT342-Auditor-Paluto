@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext'; // Adjust path if necessary
+import { useAuth } from '../core/context/AuthContext'; // Adjust path if necessary
 
 export default function AdminUsers() {
     const { user } = useAuth(); // Assuming your auth context provides a way to get the current token
