@@ -1,14 +1,12 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.booking;
 
 import edu.cit.auditor.paluto.core.entities.*;
-import edu.cit.auditor.paluto.dto.BookingRequestDTO;
-import edu.cit.auditor.paluto.dto.BookingResponseDTO;
 import edu.cit.auditor.paluto.core.repositories.BookingRepository;
 import edu.cit.auditor.paluto.core.repositories.ServiceRepository;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
-import edu.cit.auditor.paluto.strategy.PricingStrategy;
-import edu.cit.auditor.paluto.strategy.ScaledPricingStrategy;
-import edu.cit.auditor.paluto.strategy.StandardPricingStrategy;
+import edu.cit.auditor.paluto.booking.strategy.PricingStrategy;
+import edu.cit.auditor.paluto.booking.strategy.ScaledPricingStrategy;
+import edu.cit.auditor.paluto.booking.strategy.StandardPricingStrategy;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 

@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.strategy;
+package edu.cit.auditor.paluto.booking.strategy;
 
 import java.math.BigDecimal;
 
