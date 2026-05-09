@@ -106,21 +106,6 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    public void handlePaymentSuccess(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found: " + bookingId));
-        booking.setStatus("PAID_PENDING");
-        bookingRepository.save(booking);
-    }
-
-    public void handlePaymentFailed(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found: " + bookingId));
-        booking.setStatus("CANCELLED");
-        booking.setCancelledAt(LocalDateTime.now());
-        bookingRepository.save(booking);
-    }
-
     public void updateStatus(Long bookingId, String status, String action) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
