@@ -1,7 +1,5 @@
-package edu.cit.auditor.paluto.utils;
+package edu.cit.auditor.paluto.infrastructure.common;
 
-import edu.cit.auditor.paluto.response.ApiError;
-import edu.cit.auditor.paluto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

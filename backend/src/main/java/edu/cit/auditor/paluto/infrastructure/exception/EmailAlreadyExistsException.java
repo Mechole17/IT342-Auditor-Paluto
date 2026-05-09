@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.exception;
+package edu.cit.auditor.paluto.infrastructure.exception;
 
 public class EmailAlreadyExistsException extends RuntimeException {
     public EmailAlreadyExistsException(String message) {

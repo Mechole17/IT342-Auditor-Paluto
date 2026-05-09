@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.response;
+package edu.cit.auditor.paluto.infrastructure.common;
 
 import lombok.Builder;
 import lombok.Data;

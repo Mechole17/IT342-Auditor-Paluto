@@ -1,6 +1,5 @@
-package edu.cit.auditor.paluto.controller;
+package edu.cit.auditor.paluto.infrastructure.storage;
 
-import edu.cit.auditor.paluto.infrastructure.storage.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

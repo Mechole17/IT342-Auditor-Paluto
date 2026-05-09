@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.infrastructure.storage;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;

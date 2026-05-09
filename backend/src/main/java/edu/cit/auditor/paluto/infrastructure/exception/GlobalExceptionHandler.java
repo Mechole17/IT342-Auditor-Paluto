@@ -1,7 +1,7 @@
-package edu.cit.auditor.paluto.exception;
+package edu.cit.auditor.paluto.infrastructure.exception;
 
-import edu.cit.auditor.paluto.response.ApiError;
-import edu.cit.auditor.paluto.response.ApiResponse;
+import edu.cit.auditor.paluto.infrastructure.common.ApiError;
+import edu.cit.auditor.paluto.infrastructure.common.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

@@ -1,4 +1,4 @@
-package edu.cit.auditor.paluto.service;
+package edu.cit.auditor.paluto.infrastructure.security;
 
 import edu.cit.auditor.paluto.core.entities.User;
 import io.jsonwebtoken.Jwts;

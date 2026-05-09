@@ -1,6 +1,5 @@
-package edu.cit.auditor.paluto.security;
+package edu.cit.auditor.paluto.infrastructure.security;
 
-import edu.cit.auditor.paluto.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

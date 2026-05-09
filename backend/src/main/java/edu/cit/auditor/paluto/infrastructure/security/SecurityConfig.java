@@ -1,8 +1,7 @@
-package edu.cit.auditor.paluto.security;
+package edu.cit.auditor.paluto.infrastructure.security;
 
 import edu.cit.auditor.paluto.core.entities.User;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
-import edu.cit.auditor.paluto.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
