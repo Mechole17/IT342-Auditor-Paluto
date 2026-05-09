@@ -1,0 +1,45 @@
+package edu.cit.auditor.paluto.service;
+
+import edu.cit.auditor.paluto.dto.CustomerRegistrationDTO;
+import edu.cit.auditor.paluto.core.entities.Customer;
+import edu.cit.auditor.paluto.infrastructure.exception.EmailAlreadyExistsException;
+import edu.cit.auditor.paluto.core.repositories.CustomerRepository;
+import edu.cit.auditor.paluto.core.repositories.UserRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+public class CustomerService {
+    private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public CustomerService(UserRepository userRepository, CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.customerRepository = customerRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public Customer registerCustomer(CustomerRegistrationDTO dto) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already in use.");
+        }
+        Customer newCustomer = Customer.builder()
+                // USER attr
+                .firstname(dto.getFirstname())
+                .lastname(dto.getLastname())
+                .email(dto.getEmail())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .address(dto.getAddress())
+                .role("CUSTOMER") // Follows your role naming convention
+                .authProvider("LOCAL")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        return customerRepository.save(newCustomer);
+    }
+}
