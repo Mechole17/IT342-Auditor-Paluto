@@ -1,36 +1,36 @@
-import LandingPage from './pages/public/landingpage.jsx';
-import Cooks from './pages/public/cooks.jsx';
+import LandingPage from './service/landingpage.jsx';
+import Cooks from './profiles/cooks.jsx';
 
-import CustomerRegister from './pages/customer/customer_registrationpage';
-import CustomerHomePage from './pages/customer/customer_homepage';
-import CustomerCooks from './pages/customer/customer_cooks.jsx';
-import CustomerBookings from './pages/customer/customer_bookings.jsx';
-import ServiceDetails from './pages/customer/service_detailspage.jsx';
-import PaymentPage from './pages/customer/service_paymentpage.jsx';
+import CustomerRegister from './authentication/customer_registrationpage.jsx';
+import CustomerHomePage from './service/customer_homepage.jsx';
+import CustomerCooks from './profiles/customer_cooks.jsx';
+import CustomerBookings from './booking/customer_bookings.jsx';
+import ServiceDetails from './service/service_detailspage.jsx';
+import PaymentPage from './booking/service_paymentpage.jsx';
 
-import CookRegister from './pages/cook/cook_registrationpage.jsx';
-import CookHomePage from './pages/cook/cook_dashboard.jsx';
-import CookBookings from './pages/cook/cook_bookings.jsx';
-import CookPortfolio from './pages/cook/cook_portfolio.jsx';
-import SelectRole from './pages/public/authentication/select_role.jsx';
-import CustomerExtraDetails from './pages/public/authentication/customer_extra_details.jsx';
-import CookExtraDetails from './pages/public/authentication/cook_extra_details.jsx';
-import OAuthSuccess from './pages/public/authentication/oauth_success_page.jsx';
+import CookRegister from './authentication/cook_registrationpage.jsx';
+import CookHomePage from './profiles/cook_dashboard.jsx';
+import CookBookings from './booking/cook_bookings.jsx';
+import CookPortfolio from './profiles/cook_portfolio.jsx';
+import SelectRole from './authentication/select_role.jsx';
+import CustomerExtraDetails from './authentication/customer_extra_details.jsx';
+import CookExtraDetails from './authentication/cook_extra_details.jsx';
+import OAuthSuccess from './authentication/oauth_success_page.jsx';
 
-import AdminLayout from './layout/admin_layout.jsx';
-import AdminUsers from './pages/admin/admin_users.jsx';
+import AdminLayout from './core/layout/admin_layout.jsx';
+import AdminUsers from './profiles/admin_users.jsx';
 
-import PublicRoute from './context/PublicRoute.jsx';
-import CookProfile from './pages/public/cook_profile.jsx';
-import AdminHomePage from './pages/admin/admin_homepage.jsx';
+import PublicRoute from './core/context/PublicRoute.jsx';
+import CookProfile from './profiles/cook_profile.jsx';
+import AdminHomePage from './profiles/admin_homepage.jsx';
 
-import AuthProvider from './context/AuthContext.jsx';
-import ProtectedRoute from './context/protectedRoutes.jsx';
+import AuthProvider from './core/context/AuthContext.jsx';
+import ProtectedRoute from './core/context/protectedRoutes.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
-import PublicLayout from './layout/public_layout.jsx';
-import CookLayout from './layout/cook_layout.jsx';
-import CustomerLayout from './layout/customer_layout.jsx';
+import PublicLayout from './core/layout/public_layout.jsx';
+import CookLayout from './core/layout/cook_layout.jsx';
+import CustomerLayout from './core/layout/customer_layout.jsx';
 
 function App() {
   return (
