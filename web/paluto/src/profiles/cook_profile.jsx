@@ -10,17 +10,20 @@ export default function CookProfile() {
 
     const [cook, setCook] = useState(null);
     const [services, setServices] = useState([]);
+    const [certificates, setCertificates] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [cookRes, servicesRes] = await Promise.all([
+                const [cookRes, servicesRes, certsRes] = await Promise.all([
                     axios.get(`http://localhost:8080/api/cook/${id}`),
-                    axios.get(`http://localhost:8080/api/services/cook/${id}/services`)
+                    axios.get(`http://localhost:8080/api/services/cook/${id}/services`),
+                    axios.get(`http://localhost:8080/api/certificates/cook/${id}`)
                 ]);
                 setCook(cookRes.data.data);
                 setServices(servicesRes.data.data);
+                setCertificates(certsRes.data.data.filter(c => c.status === 'APPROVED'));
             } catch (err) {
                 console.error("Failed to fetch cook profile", err);
             } finally {
@@ -63,6 +66,12 @@ export default function CookProfile() {
         cardMeta: { fontSize: '13px', color: '#888', margin: '2px 0' },
         cardPrice: { fontSize: '18px', fontWeight: '800', margin: '10px 0' },
         viewBtn: { width: '100%', backgroundColor: '#F5A623', color: '#fff', border: 'none', borderRadius: '10px', padding: '10px', fontWeight: '700', fontSize: '14px', cursor: 'pointer' },
+        certSection: { display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' },
+        certCard: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d1e7dd', borderRadius: '12px', padding: '16px 20px', backgroundColor: '#f8fff9' },
+        certInfo: { display: 'flex', alignItems: 'center', gap: '14px' },
+        certTitle: { fontWeight: '700', fontSize: '15px', margin: 0 },
+        certBadge: { backgroundColor: '#d1e7dd', color: '#0a3622', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' },
+        certViewLink: { fontSize: '13px', color: '#0A0A1F', fontWeight: '600', textDecoration: 'underline' },
     };
 
     if (loading) return <div style={styles.wrapper}>Loading...</div>;
@@ -93,6 +102,29 @@ export default function CookProfile() {
                     </div>
                 </div>
             </div>
+
+            {/* Certificates */}
+            <h2 style={styles.sectionTitle}>Certificates</h2>
+            {certificates.length === 0 ? (
+                <p style={{ color: '#999', marginBottom: '40px' }}>No verified certificates yet.</p>
+            ) : (
+                <div style={styles.certSection}>
+                    {certificates.map(cert => (
+                        <div key={cert.id} style={styles.certCard}>
+                            <div style={styles.certInfo}>
+                                <span style={{ fontSize: '24px' }}>📄</span>
+                                <div>
+                                    <p style={styles.certTitle}>{cert.title}</p>
+                                    <span style={styles.certBadge}>✓ Verified</span>
+                                </div>
+                            </div>
+                            <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.certViewLink}>
+                                View
+                            </a>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Services */}
             <h2 style={styles.sectionTitle}>Menu</h2>

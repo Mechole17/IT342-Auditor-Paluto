@@ -3,13 +3,19 @@ import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
 
 export default function CookPortfolio() {
-    const { user, token } = useAuth();
-    const [showModal, setShowModal] = useState(false);
+    const { token } = useAuth();
+    const [showServiceModal, setShowServiceModal] = useState(false);
+    const [showCertModal, setShowCertModal] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [certLoading, setCertLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [certError, setCertError] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [certFile, setCertFile] = useState(null);
+    const [certTitle, setCertTitle] = useState('');
     const [services, setServices] = useState([]);
+    const [certificates, setCertificates] = useState([]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -32,8 +38,22 @@ export default function CookPortfolio() {
         }
     };
 
+    const fetchCertificates = async () => {
+        try {
+            const res = await axios.get(
+                'http://localhost:8080/api/certificates/my-certificates',
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setCertificates(res.data.data || []);
+        } catch (err) {
+            console.error("Failed to fetch certificates", err);
+        }
+    };
+
     useEffect(() => {
         fetchServices();
+        fetchCertificates();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleChange = (e) => {
@@ -47,6 +67,12 @@ export default function CookPortfolio() {
         setImagePreview(URL.createObjectURL(file));
     };
 
+    const handleCertFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setCertFile(file);
+    };
+
     const resetForm = () => {
         setFormData({ title: '', description: '', servingSize: '', ingredientsList: '', ingredientsCost: '', estPrepTime: '' });
         setImageFile(null);
@@ -54,9 +80,20 @@ export default function CookPortfolio() {
         setError(null);
     };
 
-    const handleClose = () => {
+    const resetCertForm = () => {
+        setCertFile(null);
+        setCertTitle('');
+        setCertError(null);
+    };
+
+    const handleServiceClose = () => {
         resetForm();
-        setShowModal(false);
+        setShowServiceModal(false);
+    };
+
+    const handleCertClose = () => {
+        resetCertForm();
+        setShowCertModal(false);
     };
 
     const handleSubmit = async () => {
@@ -97,14 +134,87 @@ export default function CookPortfolio() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            handleClose();
-            fetchServices(); // re-fetch after creation
+            handleServiceClose();
+            fetchServices();
         } catch (err) {
             const msg = err.response?.data?.error?.message || "Failed to create service.";
             setError(msg);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCertSubmit = async () => {
+        if (!certTitle || !certFile) {
+            setCertError("Please provide a title and upload a file.");
+            return;
+        }
+
+        setCertLoading(true);
+        setCertError(null);
+
+        try {
+            // 1. Upload file to Supabase
+            const fileData = new FormData();
+            fileData.append('file', certFile);
+
+            const uploadRes = await axios.post(
+                'http://localhost:8080/api/storage/certificate-upload',
+                fileData,
+                { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
+            );
+            const fileUrl = uploadRes.data.url;
+
+            // 2. Save certificate
+            await axios.post(
+                'http://localhost:8080/api/certificates/upload',
+                { title: certTitle, fileUrl },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            handleCertClose();
+            fetchCertificates();
+        } catch (err) {
+            const msg = err.response?.data?.error?.message || "Failed to upload certificate.";
+            setCertError(msg);
+        } finally {
+            setCertLoading(false);
+        }
+    };
+
+    const handleDeleteCertificate = async (certId) => {
+        if (!window.confirm("Are you sure you want to remove this certificate?")) return;
+
+        try {
+            await axios.delete(
+                `http://localhost:8080/api/certificates/${certId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            fetchCertificates();
+        } catch (err) {
+            console.error("Failed to delete certificate", err);
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        const colors = {
+            PENDING: { bg: '#fff3cd', color: '#856404' },
+            APPROVED: { bg: '#d1e7dd', color: '#0a3622' },
+            REJECTED: { bg: '#f8d7da', color: '#58151c' },
+        };
+        const style = colors[status] || colors.PENDING;
+        return (
+            <span style={{
+                backgroundColor: style.bg,
+                color: style.color,
+                fontSize: '11px',
+                fontWeight: '700',
+                padding: '3px 10px',
+                borderRadius: '20px',
+            }}>
+                {status}
+            </span>
+        );
     };
 
     const styles = {
@@ -128,19 +238,55 @@ export default function CookPortfolio() {
         serviceBody: { padding: '14px' },
         serviceTitle: { fontWeight: 'bold', fontSize: '16px', margin: '0 0 6px' },
         serviceMeta: { fontSize: '13px', color: '#888', margin: '2px 0' },
+        certCard: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #eee', borderRadius: '12px', padding: '16px 20px', marginBottom: '12px', backgroundColor: '#fff' },
+        certInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
+        certTitle: { fontWeight: '700', fontSize: '15px', margin: '0 0 4px' },
+        certActions: { display: 'flex', alignItems: 'center', gap: '12px' },
+        viewLink: { fontSize: '13px', color: '#0A0A1F', fontWeight: '600', textDecoration: 'underline', cursor: 'pointer' },
+        deleteBtn: { background: 'none', border: 'none', color: '#d10b04', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
     };
 
     return (
         <div style={styles.page}>
+            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <h1 style={{ margin: 0 }}>My Portfolio</h1>
-                <button style={styles.addBtn} onClick={() => setShowModal(true)}>+ Add Service</button>
             </div>
 
-            <h2>Certificates</h2>
-            <p style={{ color: '#999' }}>No certificates uploaded yet.</p>
+            {/* Certificates Section */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0 }}>Certificates</h2>
+                <button style={styles.addBtn} onClick={() => setShowCertModal(true)}>+ Add Certificate</button>
+            </div>
 
-            <h2 style={{ marginTop: '32px' }}>Service Offerings</h2>
+            {certificates.length === 0 ? (
+                <p style={{ color: '#999' }}>No certificates uploaded yet.</p>
+            ) : (
+                certificates.map(cert => (
+                    <div key={cert.id} style={styles.certCard}>
+                        <div style={styles.certInfo}>
+                            <div>
+                                <p style={styles.certTitle}>{cert.title}</p>
+                                {getStatusBadge(cert.status)}
+                                {cert.status === 'REJECTED' && cert.adminNote && (
+                                    <p style={{ fontSize: '12px', color: '#888', margin: '4px 0 0' }}>Note: {cert.adminNote}</p>
+                                )}
+                            </div>
+                        </div>
+                        <div style={styles.certActions}>
+                            <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.viewLink}>View</a>
+                            <button style={styles.deleteBtn} onClick={() => handleDeleteCertificate(cert.id)}>Remove</button>
+                        </div>
+                    </div>
+                ))
+            )}
+
+            {/* Services Section */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0 }}>Service Offerings</h2>
+                <button style={styles.addBtn} onClick={() => setShowServiceModal(true)}>+ Add Service</button>
+            </div>
+
             {services.length === 0 ? (
                 <p style={{ color: '#999' }}>No services listed yet. Click "Add Service" to get started.</p>
             ) : (
@@ -161,10 +307,62 @@ export default function CookPortfolio() {
                 </div>
             )}
 
-            {showModal && (
-                <div style={styles.overlay} onClick={handleClose}>
+            {/* Certificate Upload Modal */}
+            {showCertModal && (
+                <div style={styles.overlay} onClick={handleCertClose}>
                     <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <button style={styles.closeBtn} onClick={handleClose}>✕</button>
+                        <button style={styles.closeBtn} onClick={handleCertClose}>✕</button>
+
+                        <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: 'bold' }}>Upload Certificate</h2>
+                        <p style={{ color: '#666', marginBottom: '16px' }}>Upload your culinary certificates for admin verification</p>
+
+                        {certError && <div style={styles.errorMsg}>{certError}</div>}
+
+                        <label style={styles.label}>Certificate Title</label>
+                        <input
+                            placeholder="e.g. Culinary Arts Diploma"
+                            style={styles.input}
+                            value={certTitle}
+                            onChange={(e) => setCertTitle(e.target.value)}
+                        />
+
+                        <label style={styles.label}>Certificate File (PDF or Image)</label>
+                        <div style={styles.uploadBox} onClick={() => document.getElementById('certUpload').click()}>
+                            {certFile
+                                ? <p style={{ margin: 0, color: '#0A0A1F', fontSize: '14px', fontWeight: '600' }}>📄 {certFile.name}</p>
+                                : <>
+                                    <p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📎 Click to upload a file</p>
+                                    <p style={{ margin: '4px 0 0', color: '#bbb', fontSize: '12px' }}>PDF, JPG, PNG up to 10MB</p>
+                                  </>
+                            }
+                            <input
+                                id="certUpload"
+                                type="file"
+                                accept=".pdf,image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleCertFileChange}
+                            />
+                        </div>
+
+                        <div style={styles.btnRow}>
+                            <span style={styles.cancelLink} onClick={handleCertClose}>Cancel</span>
+                            <button
+                                style={{ ...styles.submitBtn, opacity: certLoading ? 0.7 : 1 }}
+                                onClick={handleCertSubmit}
+                                disabled={certLoading}
+                            >
+                                {certLoading ? "Uploading..." : "Submit for Review"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Service Creation Modal */}
+            {showServiceModal && (
+                <div style={styles.overlay} onClick={handleServiceClose}>
+                    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+                        <button style={styles.closeBtn} onClick={handleServiceClose}>✕</button>
 
                         <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: 'bold' }}>Create a Service</h2>
                         <p style={{ color: '#666', marginBottom: '16px' }}>Fill in the details of your culinary service</p>
@@ -208,7 +406,7 @@ export default function CookPortfolio() {
                         </div>
 
                         <div style={styles.btnRow}>
-                            <span style={styles.cancelLink} onClick={handleClose}>Cancel</span>
+                            <span style={styles.cancelLink} onClick={handleServiceClose}>Cancel</span>
                             <button style={{ ...styles.submitBtn, opacity: loading ? 0.7 : 1 }} onClick={handleSubmit} disabled={loading}>
                                 {loading ? "Publishing..." : "Publish Service"}
                             </button>
