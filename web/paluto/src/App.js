@@ -23,6 +23,7 @@ import AdminUsers from './profiles/admin_users.jsx';
 import PublicRoute from './core/context/PublicRoute.jsx';
 import CookProfile from './profiles/cook_profile.jsx';
 import AdminHomePage from './profiles/admin_homepage.jsx';
+import AdminCertificates from './profiles/admin_certificates.jsx';
 
 import AuthProvider from './core/context/AuthContext.jsx';
 import ProtectedRoute from './core/context/protectedRoutes.jsx';
@@ -88,6 +89,7 @@ function App() {
             }>
               <Route index element={<AdminHomePage />} />  {/* /admin */}
               <Route path="users" element={<AdminUsers />} /> {/* /admin/users */}
+              <Route path="cook-certificates" element={<AdminCertificates />} /> {/* /admin/cook-certificates */}
             </Route>
 
             </Routes>

@@ -16,6 +16,7 @@ const NAV_LINKS = {
     ADMIN: [
         { label: 'Dashboard', to: '/admin', style: 'blackBadge' },
         { label: 'Users', to: '/admin/users', style: 'link' },
+        { label: 'Certificates', to: '/admin/cook-certificates', style: 'link' },
     ],
 };
 
