@@ -53,6 +53,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/bookings/cook/**").hasAuthority("COOK")
                         .requestMatchers(HttpMethod.PUT, "/api/bookings/*/status").hasAuthority("COOK")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/{id}").hasAnyAuthority("COOK", "CUSTOMER")
+
+                        .requestMatchers(HttpMethod.GET, "/api/certificates/cook/**").permitAll()
+                        .requestMatchers("/api/certificates/upload").hasAuthority("COOK")
+                        .requestMatchers("/api/certificates/my-certificates").hasAuthority("COOK")
+                        .requestMatchers(HttpMethod.DELETE, "/api/certificates/**").hasAuthority("COOK")
+                        .requestMatchers("/api/certificates/all").hasAuthority("ADMIN")
+                        .requestMatchers("/api/storage/certificate-upload").hasAuthority("COOK")
+                        .requestMatchers("/api/certificates/pending").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,"/api/certificates/*/review").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
 

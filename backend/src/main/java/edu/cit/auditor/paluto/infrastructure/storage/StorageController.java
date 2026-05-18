@@ -25,4 +25,15 @@ public class StorageController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PostMapping("/certificate-upload")
+    public ResponseEntity<?> uploadCertificate(@RequestParam("file") MultipartFile file) {
+        try {
+            String publicUrl = supabaseStorageService.uploadCertificate(file);
+            return ResponseEntity.ok(Map.of("url", publicUrl));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }
