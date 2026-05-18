@@ -19,4 +19,8 @@ public class Cook extends User {
     private Integer yearsXp;
     private String bio;
 
+    @Builder.Default
+    @Column(name = "earnings_balance", precision = 19, scale = 2, nullable = false)
+    private BigDecimal earningsBalance = BigDecimal.ZERO;
+
 }
