@@ -47,7 +47,7 @@ export default function CookBookings() {
     const filteredBookings = bookings.filter(b => {
         if (activeTab === 'Requests') return b.status === 'PAID_PENDING';
         if (activeTab === 'Upcoming') return b.status === 'ACCEPTED';
-        if (activeTab === 'History') return ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(b.status);
+        if (activeTab === 'History') return ['COMPLETED', 'REJECTED_REFUNDED', 'CANCELLED'].includes(b.status);
         return true;
     });
 

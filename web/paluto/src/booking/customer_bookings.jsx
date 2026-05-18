@@ -73,7 +73,7 @@ export default function CustomerBookingsPage() {
         const status = b.status ? b.status.toLowerCase() : '';
         if (activeTab === 'Active') return ['paid_pending', 'accepted', 'pending'].includes(status);
         if (activeTab === 'Completed') return status === 'completed';
-        if (activeTab === 'Rejected') return ['rejected', 'cancelled'].includes(status);
+        if (activeTab === 'Rejected') return ['rejected_refunded', 'cancelled'].includes(status);
         return false;
     });
 
