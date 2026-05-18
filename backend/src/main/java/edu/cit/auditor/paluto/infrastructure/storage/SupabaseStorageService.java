@@ -20,8 +20,11 @@ public class SupabaseStorageService {
     @Value("${supabase.key}")
     private String supabaseKey;
 
-    @Value("${supabase.bucket}")
+    @Value("${supabase.service.bucket}")
     private String bucket;
+
+    @Value("${supabase.certificate.bucket}")
+    private String certificateBucket;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -39,5 +42,19 @@ public class SupabaseStorageService {
 
         // Return the public URL
         return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + fileName;
+    }
+
+    public String uploadCertificate(MultipartFile file) throws IOException {
+        String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+        String uploadUrl = supabaseUrl + "/storage/v1/object/" + certificateBucket + "/" + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + supabaseKey);
+        headers.setContentType(MediaType.parseMediaType(file.getContentType()));
+
+        HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
+        restTemplate.exchange(uploadUrl, HttpMethod.POST, entity, String.class);
+
+        return supabaseUrl + "/storage/v1/object/public/" + certificateBucket + "/" + fileName;
     }
 }
