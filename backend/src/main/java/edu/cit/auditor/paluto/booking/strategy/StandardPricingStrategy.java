@@ -11,6 +11,6 @@ public class StandardPricingStrategy implements PricingStrategy {
     @Override
     public BigDecimal calculateLaborTotal(BigDecimal hourlyRate, int minutes) {
         return hourlyRate.multiply(BigDecimal.valueOf(minutes))
-                .divide(java.math.BigDecimal.valueOf(60), 4, java.math.RoundingMode.HALF_UP);
+                .divide(java.math.BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
     }
 }

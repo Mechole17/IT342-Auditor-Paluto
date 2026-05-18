@@ -106,29 +106,40 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void updateStatus(Long bookingId, String status, String action) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
+        LocalDateTime now = LocalDateTime.now();
+
+        // FIXED: Streamlined and repaired status evaluation state checks
         if ("REJECT".equalsIgnoreCase(action)) {
-            // Logic for triggering PayMongo refund would go here
             booking.setStatus("REJECTED_REFUNDED");
         } else if ("COMPLETE".equalsIgnoreCase(action)) {
-            LocalDateTime now = LocalDateTime.now();
-            // Combine date and time from the booking entity
             LocalDateTime schedule = LocalDateTime.of(booking.getScheduledDate(), booking.getScheduledTime());
-
             if (now.isBefore(schedule)) {
                 throw new IllegalStateException("Cannot complete a booking before the scheduled time.");
             }
+
+            // FIXED: Automatically allocate funds safely into Cook wallet ledger balance
+            Cook cook = booking.getCook();
+
+            // DEFENSIVE: Secure ledger calculation against standard database null values
+            BigDecimal currentBalance = (cook.getEarningsBalance() != null) ? cook.getEarningsBalance() : BigDecimal.ZERO;
+            BigDecimal updatedBalance = currentBalance.add(booking.getTotalAmount());
+
+            cook.setEarningsBalance(updatedBalance);
+            userRepository.save(cook);
+
+            booking.setStatus("COMPLETED");
         } else {
             booking.setStatus(status);
         }
 
-        booking.setStatus(status);
-        LocalDateTime now = LocalDateTime.now();
+        // FIXED: Removed the old sequential unconditional status wipe statement: booking.setStatus(status);
 
-        switch (action) {
+        switch (action.toUpperCase()) {
             case "ACCEPT" -> booking.setAcceptedAt(now);
             case "REJECT" -> booking.setRejectedAt(now);
             case "COMPLETE" -> booking.setCompletedAt(now);

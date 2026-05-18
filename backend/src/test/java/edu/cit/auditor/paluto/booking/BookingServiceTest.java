@@ -162,19 +162,28 @@ public class BookingServiceTest {
         Booking booking = new Booking();
         booking.setId(1L);
         booking.setStatus("ACCEPTED");
-        booking.setScheduledDate(LocalDate.now().minusDays(1)); // past date
+        booking.setScheduledDate(LocalDate.now().minusDays(1));
         booking.setScheduledTime(LocalTime.of(10, 0));
+
+        // FIXED: Explicitly map the dependencies to remove the NullPointerException
+        booking.setCook(mockCook);
+        booking.setTotalAmount(new BigDecimal("1200.00"));
 
         when(bookingRepository.findById(1L))
                 .thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        when(userRepository.save(any(Cook.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
         assertDoesNotThrow(() ->
                 bookingService.updateStatus(1L, "COMPLETED", "COMPLETE")
         );
 
+        assertEquals("COMPLETED", booking.getStatus());
+        assertEquals(new BigDecimal("1200.00"), mockCook.getEarningsBalance());
         verify(bookingRepository, times(1)).save(booking);
+        verify(userRepository, times(1)).save(mockCook);
     }
 
     @Test
