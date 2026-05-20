@@ -4,10 +4,12 @@ import edu.cit.auditor.paluto.booking.BookingRequestDTO;
 import edu.cit.auditor.paluto.booking.BookingService;
 import edu.cit.auditor.paluto.core.entities.Booking;
 import edu.cit.auditor.paluto.core.entities.Payment;
+import edu.cit.auditor.paluto.core.events.BookingPaidEvent;
 import edu.cit.auditor.paluto.core.repositories.PaymentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,6 +30,7 @@ public class PaymentService {
 
     private final BookingService bookingService;
     private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Map<String, Object> createPaymongoCheckout(BigDecimal amount, Map<String, Object> metadata) {
         WebClient webClient = WebClient.builder()
@@ -157,6 +160,9 @@ public class PaymentService {
             // 3. Commit row to payments database table
             paymentRepository.save(paymentLog);
             System.out.println("SUCCESS: Cleanly saved Booking ID " + savedBooking.getId() + " and linked Payment Log.");
+
+            eventPublisher.publishEvent(new BookingPaidEvent(savedBooking, customerEmail, amountPaid, metadata));
+            System.out.println("Payment confirmation event broadcasted to platform observers.");
         } else {
             System.out.println("Ignored Event Type: " + eventType);
         }
