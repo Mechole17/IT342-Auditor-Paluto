@@ -1,11 +1,13 @@
 package edu.cit.auditor.paluto.users;
 
 import edu.cit.auditor.paluto.core.entities.Cook;
+import edu.cit.auditor.paluto.core.events.UserRegisteredEvent;
 import edu.cit.auditor.paluto.infrastructure.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.core.repositories.CookRepository;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ public class CookService {
     private final UserRepository userRepository;
     private final CookRepository cookRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Cook registerCook(CookRegistrationDTO dto){
@@ -41,7 +44,11 @@ public class CookService {
                 .bio(dto.getBio())
                 .build();
 
-        return cookRepository.save(newCook);
+        Cook savedCook = cookRepository.save(newCook);
+        eventPublisher.publishEvent(new UserRegisteredEvent(savedCook));
+        System.out.println("Registration event successfully published for Cook: " + savedCook.getEmail());
+
+        return savedCook;
     }
 
     public List<CookResponseDTO> getAllCooks() {

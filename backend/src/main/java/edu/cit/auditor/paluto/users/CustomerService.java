@@ -1,26 +1,27 @@
 package edu.cit.auditor.paluto.users;
 
 import edu.cit.auditor.paluto.core.entities.Customer;
+import edu.cit.auditor.paluto.core.events.UserRegisteredEvent;
 import edu.cit.auditor.paluto.infrastructure.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.core.repositories.CustomerRepository;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class CustomerService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
-
-    public CustomerService(UserRepository userRepository, CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.customerRepository = customerRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Customer registerCustomer(CustomerRegistrationDTO dto) {
@@ -39,6 +40,13 @@ public class CustomerService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return customerRepository.save(newCustomer);
+        Customer savedCustomer = customerRepository.save(newCustomer);
+
+        // FIXED: Publish the Observer notification event!
+        // This instantly triggers the WelcomeEmailListener asynchronously in the background.
+        eventPublisher.publishEvent(new UserRegisteredEvent(savedCustomer));
+        System.out.println("Registration event successfully published for Customer: " + savedCustomer.getEmail());
+
+        return savedCustomer;
     }
 }
