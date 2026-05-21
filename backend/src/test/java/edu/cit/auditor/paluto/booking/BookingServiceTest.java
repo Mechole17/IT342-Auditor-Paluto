@@ -2,6 +2,8 @@ package edu.cit.auditor.paluto.booking;
 
 import edu.cit.auditor.paluto.core.entities.*;
 import edu.cit.auditor.paluto.core.repositories.*;
+import edu.cit.auditor.paluto.payment.RefundService;
+import static org.mockito.Mockito.doNothing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingServiceTest {
+
+    @Mock
+    private PaymentRepository paymentRepository;
+
+    @Mock
+    private RefundService refundService;
 
     @Mock
     private BookingRepository bookingRepository;
@@ -127,15 +135,36 @@ public class BookingServiceTest {
         booking.setId(1L);
         booking.setStatus("PAID_PENDING");
 
+        // Create a fake payment record matching what updateStatus expects
+        Payment mockPayment = new Payment();
+        mockPayment.setId(100L);
+        mockPayment.setBookingId(1L);
+        mockPayment.setAmountPaid(new BigDecimal("1200.00"));
+        mockPayment.setTransactionReference("pay_test_123abc");
+        mockPayment.setPaymentStatus("PAID");
+
+        // 1. Mock Booking Fetch
         when(bookingRepository.findById(1L))
                 .thenReturn(Optional.of(booking));
+
+        // 2. FIXED: Mock Payment Fetch to prevent the RuntimeException
+        when(paymentRepository.findByBookingId(1L))
+                .thenReturn(Optional.of(mockPayment));
+
         when(bookingRepository.save(any(Booking.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
+        // Mock your dedicated refund service bridge wrapper layer
+        doNothing().when(refundService).processRefund(anyLong(), anyString());
+
+        // Execute
         bookingService.updateStatus(1L, "REJECTED_REFUNDED", "REJECT");
 
+        // Assertions
         assertEquals("REJECTED_REFUNDED", booking.getStatus());
         assertNotNull(booking.getRejectedAt());
+        verify(paymentRepository, times(1)).findByBookingId(1L);
+        verify(refundService, times(1)).processRefund(1L, "Cook rejected booking");
         verify(bookingRepository, times(1)).save(booking);
     }
 

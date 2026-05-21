@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"api/admin/user").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/cook/**").hasAuthority("COOK")
                         .requestMatchers(HttpMethod.PUT, "/api/bookings/*/status").hasAuthority("COOK")
+                        .requestMatchers(HttpMethod.PUT, "/api/bookings/*/cancel-booking").hasAuthority("CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/{id}").hasAnyAuthority("COOK", "CUSTOMER")
 
                         .requestMatchers(HttpMethod.GET, "/api/certificates/cook/**").permitAll()

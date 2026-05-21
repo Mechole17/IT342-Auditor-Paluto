@@ -84,6 +84,22 @@ public class BookingController {
         }
     }
 
+    @PutMapping("/{id}/cancel-booking")
+    public ResponseEntity<ApiResponse<String>> cancelBooking(
+            @PathVariable Long id,
+            Authentication authentication) {
+        try {
+            System.out.println("Customer " + authentication.getName() + " requested cancellation for Booking ID: " + id);
+
+            // Execute the service using only the ID parameter
+            bookingService.cancelBooking(id);
+
+            return ResponseUtility.success("Booking successfully cancelled and refund initiated.", HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("BK-005", "Cancellation failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @GetMapping("/cook/{id}/stats")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getCookStats(@PathVariable Long id) {
         try {

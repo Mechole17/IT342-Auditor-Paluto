@@ -7,6 +7,7 @@ import edu.cit.auditor.paluto.core.repositories.UserRepository;
 import edu.cit.auditor.paluto.booking.strategy.PricingStrategy;
 import edu.cit.auditor.paluto.booking.strategy.ScaledPricingStrategy;
 import edu.cit.auditor.paluto.booking.strategy.StandardPricingStrategy;
+import edu.cit.auditor.paluto.payment.RefundService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +29,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
+    private final RefundService refundService;
 
     public void verifyCookAvailability(Long cookId, LocalDate date) {
         List<String> activeStatuses = List.of("PAID_PENDING", "ACCEPTED", "COMPLETED");
@@ -107,6 +109,27 @@ public class BookingService {
     }
 
     @Transactional
+    public void cancelBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        // 🛡️ STRICT STATE GUARD: Customers can ONLY cancel if the booking is still pending!
+        if (!"PAID_PENDING".equalsIgnoreCase(booking.getStatus())) {
+            throw new IllegalStateException("Cancellation Denied: This booking has already been accepted by the cook or processed.");
+        }
+
+        String auditReason = "Customer cancellation.";
+
+        // 1. Fire your dedicated RefundService to handle the PayMongo Sandbox call
+        refundService.processRefund(bookingId, auditReason);
+
+        // 2. Set domain layer metrics
+        booking.setStatus("CANCELLED_REFUNDED");
+        booking.setCancelledAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+    }
+
+    @Transactional
     public void updateStatus(Long bookingId, String status, String action) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
@@ -115,7 +138,18 @@ public class BookingService {
 
         // FIXED: Streamlined and repaired status evaluation state checks
         if ("REJECT".equalsIgnoreCase(action)) {
+            if (!booking.getStatus().equals("PAID_PENDING")) {
+                throw new IllegalStateException("Can only reject bookings that are not yet accepted.");
+            }
+            refundService.processRefund(bookingId, "Cook rejected booking");
             booking.setStatus("REJECTED_REFUNDED");
+
+        } else if ("ACCEPT".equalsIgnoreCase(action)) {
+            if (!booking.getStatus().equals("PAID_PENDING")) {
+                throw new IllegalStateException("Can only accept bookings that are awaiting confirmation.");
+            }
+            booking.setStatus("ACCEPTED");
+
         } else if ("COMPLETE".equalsIgnoreCase(action)) {
             LocalDateTime schedule = LocalDateTime.of(booking.getScheduledDate(), booking.getScheduledTime());
             if (now.isBefore(schedule)) {

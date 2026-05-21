@@ -36,6 +36,10 @@ public class Payment {
 
     private LocalDateTime processedAt;
 
+    private LocalDateTime refundedAt;
+
+    private String refundReason;
+
     @PrePersist
     protected void onProcess() {
         this.processedAt = LocalDateTime.now();
