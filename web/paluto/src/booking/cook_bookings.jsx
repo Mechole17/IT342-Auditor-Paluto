@@ -13,6 +13,10 @@ export default function CookBookings() {
 
     const [selectedBooking, setSelectedBooking] = useState(null);
 
+    // 🚀 Track processing states
+    const [processingId, setProcessingId] = useState(null);
+    const [currentAction, setCurrentAction] = useState(null);
+
     const fetchBookings = async () => {
         if (!user?.id) return;
         try {
@@ -32,22 +36,50 @@ export default function CookBookings() {
     }, [user]);
 
     const handleStatusUpdate = async (id, newStatus, actionStr) => {
+        if (actionStr === 'REJECT') {
+            const confirm = window.confirm("Are you sure you want to reject this booking? The customer will be refunded.");
+            if (!confirm) return;
+        }
+        
+        if (actionStr === 'ACCEPT') {
+            const confirm = window.confirm("Are you sure you want to accept this booking? You are committing to this schedule.");
+            if (!confirm) return;
+        }
+
+        if (actionStr === 'COMPLETE') {
+            const confirm = window.confirm("Are you sure you want to mark this booking as completed?");
+            if (!confirm) return;
+        }
+
         try {
+            setProcessingId(id);
+            setCurrentAction(actionStr);
+
             await axios.put(
                 `http://localhost:8080/api/bookings/${id}/status?status=${newStatus}&action=${actionStr}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            fetchBookings();
+
+            if (actionStr === 'COMPLETE') {
+                alert("Booking marked as completed!");
+            } else {
+                alert(`Booking ${actionStr.toLowerCase()}ed successfully!`);
+            }
+            
+            await fetchBookings();
         } catch (err) {
             alert(err.response?.data?.error?.message || "Failed to update booking status.");
+        } finally {
+            setProcessingId(null);
+            setCurrentAction(null);
         }
     };
 
     const filteredBookings = bookings.filter(b => {
         if (activeTab === 'Requests') return b.status === 'PAID_PENDING';
         if (activeTab === 'Upcoming') return b.status === 'ACCEPTED';
-        if (activeTab === 'History') return ['COMPLETED', 'REJECTED_REFUNDED', 'CANCELLED'].includes(b.status);
+        if (activeTab === 'History') return ['COMPLETED', 'REJECTED_REFUNDED', 'CANCELLED_REFUNDED'].includes(b.status);
         return true;
     });
 
@@ -57,8 +89,36 @@ export default function CookBookings() {
         return now >= schedule;
     };
 
+    // 🚀 Inline CSS Spinner Definition
+    const Spinner = () => (
+        <span className="btn-spinner" style={{
+            display: 'inline-block',
+            width: '12px',
+            height: '12px',
+            border: '2px solid rgba(255,255,255,0.3)',
+            borderRadius: '50%',
+            borderTopColor: '#fff',
+            animation: 'spin 0.6s linear infinite',
+            marginRight: '8px',
+            verticalAlign: 'middle'
+        }} />
+    );
+
+    const DarkSpinner = () => (
+        <span className="btn-spinner" style={{
+            display: 'inline-block',
+            width: '12px',
+            height: '12px',
+            border: '2px solid rgba(0,0,0,0.1)',
+            borderRadius: '50%',
+            borderTopColor: '#000',
+            animation: 'spin 0.6s linear infinite',
+            marginRight: '8px',
+            verticalAlign: 'middle'
+        }} />
+    );
+
     const styles = {
-        // 1. Lock the page height and hide main overflow
         page: { 
             padding: '40px', 
             fontFamily: 'Arial, sans-serif',
@@ -68,7 +128,6 @@ export default function CookBookings() {
             flexDirection: 'column',
             overflow: 'hidden'
         },
-        // 2. Prevent title and tabs from shrinking
         title: { fontSize: '28px', fontWeight: 'bold', marginBottom: '30px', marginTop: 0, flexShrink: 0 },
         tabContainer: { display: 'flex', gap: '20px', marginBottom: '30px', borderBottom: '2px solid #eee', flexShrink: 0 },
         tab: (isActive) => ({
@@ -79,7 +138,6 @@ export default function CookBookings() {
             borderBottom: isActive ? '3px solid #0A0A1F' : '3px solid transparent',
             marginBottom: '-2px'
         }),
-        // 3. New scrollable area just for the cards
         scrollableArea: {
             flex: 1,
             overflowY: 'auto',
@@ -174,6 +232,9 @@ export default function CookBookings() {
 
     return (
         <div style={styles.page}>
+            {/* Inject CSS keyframes for rotation animation */}
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            
             <h1 style={styles.title}>My Bookings</h1>
 
             <div style={styles.tabContainer}>
@@ -181,105 +242,107 @@ export default function CookBookings() {
                     <div 
                         key={tab} 
                         style={styles.tab(activeTab === tab)}
-                        onClick={() => setActiveTab(tab)}
+                        onClick={() => processingId === null && setActiveTab(tab)}
                     >
                         {tab}
                     </div>
                 ))}
             </div>
 
-            {/* 4. Wrap the cards block inside the scrollableArea */}
             <div style={styles.scrollableArea}>
                 {filteredBookings.length === 0 ? (
                     <p style={{ color: '#999' }}>No bookings found in this category.</p>
                 ) : (
                     <div style={styles.cardList}>
-                        {filteredBookings.map(booking => (
-                            <div key={booking.id} style={styles.card}>
-                                
-                                <img 
-                                    src={booking.serviceImage || 'https://via.placeholder.com/180x120?text=No+Image'} 
-                                    alt={booking.serviceTitle} 
-                                    style={styles.image} 
-                                />
-                                
-                                <div style={styles.contentArea}>
-                                    {/* Top Row: Title, Date/Time, Details Button */}
-                                    <div style={styles.rowTop}>
-                                        <h3 style={styles.serviceTitle}>{booking.serviceTitle}</h3>
-                                        <div style={styles.dateTimeWrapper}>
-                                            <p style={styles.dateTimeText}>{booking.scheduledDate}</p>
-                                            <p style={styles.dateTimeText}>{booking.scheduledTime}</p>
+                        {filteredBookings.map(booking => {
+                            const isThisCard = processingId === booking.id;
+
+                            return (
+                                <div key={booking.id} style={styles.card}>
+                                    <img 
+                                        src={booking.serviceImage || 'https://via.placeholder.com/180x120?text=No+Image'} 
+                                        alt={booking.serviceTitle} 
+                                        style={styles.image} 
+                                    />
+                                    
+                                    <div style={styles.contentArea}>
+                                        <div style={styles.rowTop}>
+                                            <h3 style={styles.serviceTitle}>{booking.serviceTitle}</h3>
+                                            <div style={styles.dateTimeWrapper}>
+                                                <p style={styles.dateTimeText}>{booking.scheduledDate}</p>
+                                                <p style={styles.dateTimeText}>{booking.scheduledTime}</p>
+                                            </div>
+                                            <button 
+                                                style={styles.detailsBtn} 
+                                                disabled={processingId !== null}
+                                                onClick={() => setSelectedBooking(booking)}
+                                            >
+                                                Details
+                                            </button>
                                         </div>
-                                        <button style={styles.detailsBtn} onClick={() => setSelectedBooking(booking)}>Details</button>
-                                    </div>
 
-                                    {/* Middle Row: Customer Name */}
-                                    <div style={styles.rowMiddle}>
-                                        <p style={styles.customerName}>
-                                            {booking.customerName || "Customer Name"}
-                                        </p>
-                                    </div>
+                                        <div style={styles.rowMiddle}>
+                                            <p style={styles.customerName}>
+                                                {booking.customerName || "Customer Name"}
+                                            </p>
+                                        </div>
 
-                                    {/* Bottom Row: Quantity and Action Buttons */}
-                                    <div style={styles.rowBottom}>
-                                        <p style={styles.quantity}>x{booking.quantity}</p>
-                                        
-                                        <div>
-                                            {/* Buttons for PAID_PENDING (Requests Tab) */}
-                                            {booking.status === 'PAID_PENDING' && (
-                                                <>
+                                        <div style={styles.rowBottom}>
+                                            <p style={styles.quantity}>x{booking.quantity}</p>
+                                            
+                                            <div>
+                                                {/* Requests Tab */}
+                                                {booking.status === 'PAID_PENDING' && (
+                                                    <>
+                                                        <button 
+                                                            style={{ ...styles.rejectBtn, opacity: processingId !== null ? 0.6 : 1 }}
+                                                            disabled={processingId !== null}
+                                                            onClick={() => handleStatusUpdate(booking.id, 'REJECTED', 'REJECT')}
+                                                        >
+                                                            {isThisCard && currentAction === 'REJECT' && <DarkSpinner />}
+                                                            Reject
+                                                        </button>
+                                                        <button 
+                                                            style={{ ...styles.acceptBtn, opacity: processingId !== null ? 0.6 : 1 }}
+                                                            disabled={processingId !== null}
+                                                            onClick={() => handleStatusUpdate(booking.id, 'ACCEPTED', 'ACCEPT')}
+                                                        >
+                                                            {isThisCard && currentAction === 'ACCEPT' && <Spinner />}
+                                                            Accept
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                {/* Upcoming Tab */}
+                                                {booking.status === 'ACCEPTED' && (
                                                     <button 
-                                                        style={styles.rejectBtn}
-                                                        onClick={() => handleStatusUpdate(booking.id, 'REJECTED', 'REJECT')}
+                                                        style={{
+                                                            ...styles.completeBtn,
+                                                            backgroundColor: isScheduleMet(booking.scheduledDate, booking.scheduledTime) ? '#27ae60' : '#a5d6a7',
+                                                            opacity: processingId !== null ? 0.6 : 1
+                                                        }} 
+                                                        disabled={processingId !== null || !isScheduleMet(booking.scheduledDate, booking.scheduledTime)}
+                                                        onClick={() => handleStatusUpdate(booking.id, 'COMPLETED', 'COMPLETE')}
                                                     >
-                                                        Reject
+                                                        {isThisCard && currentAction === 'COMPLETE' && <Spinner />}
+                                                        {isScheduleMet(booking.scheduledDate, booking.scheduledTime) ? 'Mark as Completed' : 'Locked (Schedule not met)'}
                                                     </button>
-                                                    <button 
-                                                        style={styles.acceptBtn}
-                                                        onClick={() => handleStatusUpdate(booking.id, 'ACCEPTED', 'ACCEPT')}
-                                                    >
-                                                        Accept
-                                                    </button>
-                                                </>
-                                            )}
+                                                )}
 
-                                            {/* Button for ACCEPTED (Upcoming Tab) */}
-                                            {booking.status === 'ACCEPTED' && (
-                                                <button 
-                                                    style={{
-                                                        ...styles.completeBtn,
-                                                        backgroundColor: isScheduleMet(booking.scheduledDate, booking.scheduledTime) 
-                                                            ? '#28a745' 
-                                                            : '#a5d6a7', // Lighter green when locked
-                                                        cursor: isScheduleMet(booking.scheduledDate, booking.scheduledTime) 
-                                                            ? 'pointer' 
-                                                            : 'not-allowed'
-                                                    }} 
-                                                    disabled={!isScheduleMet(booking.scheduledDate, booking.scheduledTime)}
-                                                    onClick={() => handleStatusUpdate(booking.id, 'COMPLETED', 'COMPLETE')}
-                                                >
-                                                    {isScheduleMet(booking.scheduledDate, booking.scheduledTime) 
-                                                        ? 'Mark as Completed' 
-                                                        : 'Locked (Schedule not met)'}
-                                                </button>
-                                            )}
-
-                                            {/* Badge for History Tab */}
-                                            {['COMPLETED', 'REJECTED', 'CANCELLED'].includes(booking.status) && (
-                                                <span style={styles.statusBadge}>{booking.status}</span>
-                                            )}
+                                                {/* History Tab */}
+                                                {['COMPLETED', 'REJECTED_REFUNDED', 'CANCELLED_REFUNDED'].includes(booking.status) && (
+                                                    <span style={styles.statusBadge}>{booking.status.replace(/_/g, ' ')}</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
             {selectedBooking && <BookingDetailsModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} />}
         </div>
     );
-    
 }
