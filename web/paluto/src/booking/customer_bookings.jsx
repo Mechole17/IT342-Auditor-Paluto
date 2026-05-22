@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from '../core/api.js';
 import BookingDetailsModal from "./bookings_details_modal";
 const TABS = ['Active', 'Completed', 'Rejected', 'Cancelled'];
 
@@ -21,7 +22,7 @@ export default function CustomerBookingsPage() {
         try {
             setCancellingId(id);
             await axios.put(
-                `http://localhost:8080/api/bookings/${id}/cancel-booking`,
+                `${API_BASE_URL}/api/bookings/${id}/cancel-booking`,
                 {}, 
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -48,7 +49,7 @@ export default function CustomerBookingsPage() {
             const userId = userData.id;
 
             // Updated this to the general customer endpoint
-            const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
+            const response = await axios.get(`${API_BASE_URL}/api/bookings/customer/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -74,7 +75,7 @@ export default function CustomerBookingsPage() {
             try {
                 const token = localStorage.getItem('token');
                 const response = await axios.post(
-                    'http://localhost:8080/api/bookings/create',
+                    `${API_BASE_URL}/api/bookings/create`,
                     JSON.parse(pendingBooking),
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function AdminCertificates() {
     const { token } = useAuth();
@@ -14,7 +15,7 @@ export default function AdminCertificates() {
     const fetchCertificates = async () => {
         try {
             const res = await axios.get(
-                'http://localhost:8080/api/certificates/all',
+                `${API_BASE_URL}/api/certificates/all`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setCertificates(res.data.data || []);
@@ -32,7 +33,7 @@ export default function AdminCertificates() {
     const handleReview = async (status) => {
         try {
             await axios.patch(
-                `http://localhost:8080/api/certificates/${selectedCert.id}/review`,
+                `${API_BASE_URL}/api/certificates/${selectedCert.id}/review`,
                 { status, adminNote: reviewNote },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

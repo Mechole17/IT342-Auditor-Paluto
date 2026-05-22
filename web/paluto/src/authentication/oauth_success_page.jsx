@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../core/context/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../core/api.js'; // Import your API base URL
 
 export default function OAuthSuccess() {
     const [searchParams] = useSearchParams();
@@ -14,7 +15,7 @@ export default function OAuthSuccess() {
         if (token) {
             const fetchUserAndLogin = async () => {
                 try {
-                    const res = await axios.get('http://localhost:8080/api/auth/me', {
+                    const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
 

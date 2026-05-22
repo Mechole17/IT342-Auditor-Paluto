@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../core/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import GoogleLogo from '../../asset/google-con.jpg';
+import { API_BASE_URL } from '../../core/api.js';
 
 export default function LoginModal({ onClose }) {
     const { login } = useAuth();
@@ -17,7 +18,7 @@ export default function LoginModal({ onClose }) {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/login', { email, password });
+            const response = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
             if (response.data.success) {
                 const { accessToken, user } = response.data.data;
                 login(user, accessToken); // Updates global state
@@ -56,7 +57,7 @@ export default function LoginModal({ onClose }) {
 
     const handleGoogleSignIn = () => {
         // This triggers the Spring Security OAuth2 flow
-        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+        window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
     };
 
     return (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function CustomerExtraDetails() {
     const { state } = useLocation(); 
@@ -16,7 +17,7 @@ export default function CustomerExtraDetails() {
         const payload = { ...state, address, role: 'CUSTOMER' };
         
         try {
-            const res = await axios.post('http://localhost:8080/api/auth/register-oauth-final', payload);
+            const res = await axios.post(`${API_BASE_URL}/api/auth/register-oauth-final`, payload);
             
             if (res.data.success) {
                 const { accessToken, user } = res.data.data; 

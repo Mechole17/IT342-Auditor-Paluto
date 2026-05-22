@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function CookProfile() {
     const { id } = useParams();
@@ -17,9 +18,9 @@ export default function CookProfile() {
         const fetchData = async () => {
             try {
                 const [cookRes, servicesRes, certsRes] = await Promise.all([
-                    axios.get(`http://localhost:8080/api/cook/${id}`),
-                    axios.get(`http://localhost:8080/api/services/cook/${id}/services`),
-                    axios.get(`http://localhost:8080/api/certificates/cook/${id}`)
+                    axios.get(`${API_BASE_URL}/api/cook/${id}`),
+                    axios.get(`${API_BASE_URL}/api/services/cook/${id}/services`),
+                    axios.get(`${API_BASE_URL}/api/certificates/cook/${id}`)
                 ]);
                 setCook(cookRes.data.data);
                 setServices(servicesRes.data.data);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../core/context/AuthContext";
 import BookingDetailsModal from "./bookings_details_modal";
+import { API_BASE_URL } from '../core/api.js';
 
 const TABS = ['Requests', 'Upcoming', 'History'];
 
@@ -20,7 +21,7 @@ export default function CookBookings() {
     const fetchBookings = async () => {
         if (!user?.id) return;
         try {
-            const res = await axios.get(`http://localhost:8080/api/bookings/cook/${user.id}`, {
+            const res = await axios.get(`${API_BASE_URL}/api/bookings/cook/${user.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setBookings(res.data.data || []);
@@ -56,7 +57,7 @@ export default function CookBookings() {
             setCurrentAction(actionStr);
 
             await axios.put(
-                `http://localhost:8080/api/bookings/${id}/status?status=${newStatus}&action=${actionStr}`,
+                `${API_BASE_URL}/api/bookings/${id}/status?status=${newStatus}&action=${actionStr}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
