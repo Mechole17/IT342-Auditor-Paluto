@@ -40,9 +40,9 @@ export default function CookHomePage() {
     }, [user]);
 
     const KPI = [
+        { label: 'Average Rating', value: stats.avgRating },
         { label: 'Completed Bookings', value: stats.completedBookings },
-        { label: 'Upcoming Bookings', value: stats.upcomingBookings },
-        { label: 'Average Rating', value: stats.averageRating },
+        { label: 'Total Earnings', value: `₱${Number(stats.totalEarnings || 0).toLocaleString()}` },
     ];
 
     if (loading) return <div style={styles.wrapper}>Loading Dashboard...</div>;

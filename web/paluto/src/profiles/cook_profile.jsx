@@ -12,19 +12,41 @@ export default function CookProfile() {
     const [cook, setCook] = useState(null);
     const [services, setServices] = useState([]);
     const [certificates, setCertificates] = useState([]);
+    const [ratings, setRatings] = useState([]);
+    const [averageRating, setAverageRating] = useState(0);
     const [loading, setLoading] = useState(true);
+
+    const [activeTab, setActiveTab] = useState('Menu');
+
+    // Tab styles
+    const tabStyles = {
+        tabContainer: { display: 'flex', gap: '0', marginBottom: '24px', borderBottom: '2px solid #eee' },
+        tab: (isActive) => ({
+            padding: '12px 28px',
+            cursor: 'pointer',
+            fontWeight: isActive ? '700' : '500',
+            color: isActive ? '#0A0A1F' : '#888',
+            borderBottom: isActive ? '3px solid #0A0A1F' : '3px solid transparent',
+            marginBottom: '-2px',
+            fontSize: '15px'
+        }),
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [cookRes, servicesRes, certsRes] = await Promise.all([
+                const [cookRes, servicesRes, certsRes, ratingsRes, avgRes] = await Promise.all([
                     axios.get(`${API_BASE_URL}/api/cook/${id}`),
                     axios.get(`${API_BASE_URL}/api/services/cook/${id}/services`),
-                    axios.get(`${API_BASE_URL}/api/certificates/cook/${id}`)
+                    axios.get(`${API_BASE_URL}/api/certificates/cook/${id}`),
+                    axios.get(`${API_BASE_URL}/api/ratings/cook/${id}`),
+                    axios.get(`${API_BASE_URL}/api/ratings/cook/${id}/average`)
                 ]);
                 setCook(cookRes.data.data);
                 setServices(servicesRes.data.data);
                 setCertificates(certsRes.data.data.filter(c => c.status === 'APPROVED'));
+                setRatings(ratingsRes.data.data || []);
+                setAverageRating(avgRes.data.data || 0);
             } catch (err) {
                 console.error("Failed to fetch cook profile", err);
             } finally {
@@ -98,59 +120,106 @@ export default function CookProfile() {
                         </div>
                         <div style={styles.metaItem}>
                             <span style={styles.metaLabel}>Rating</span>
-                            <span style={styles.metaValue}>4.5 ⭐</span>
+                            <span style={styles.metaValue}>
+                                {averageRating > 0 ? `${averageRating} ⭐` : 'No ratings yet'}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Certificates */}
-            <h2 style={styles.sectionTitle}>Certificates</h2>
-            {certificates.length === 0 ? (
-                <p style={{ color: '#999', marginBottom: '40px' }}>No verified certificates yet.</p>
-            ) : (
-                <div style={styles.certSection}>
-                    {certificates.map(cert => (
-                        <div key={cert.id} style={styles.certCard}>
-                            <div style={styles.certInfo}>
-                                <span style={{ fontSize: '24px' }}>📄</span>
-                                <div>
-                                    <p style={styles.certTitle}>{cert.title}</p>
-                                    <span style={styles.certBadge}>✓ Verified</span>
+            {/* Tabs */}
+            <div style={tabStyles.tabContainer}>
+                {['Menu', 'Reviews', 'Certificates'].map(tab => (
+                    <div key={tab} style={tabStyles.tab(activeTab === tab)} onClick={() => setActiveTab(tab)}>
+                        {tab} {tab === 'Reviews' && `(${ratings.length})`}
+                    </div>
+                ))}
+            </div>
+
+            {/* Menu Tab */}
+            {activeTab === 'Menu' && (
+                <>
+                    {services.length === 0 ? (
+                        <p style={{ color: '#999' }}>No services listed yet.</p>
+                    ) : (
+                        <div style={styles.grid}>
+                            {services.map(service => (
+                                <div key={service.id} style={styles.card}>
+                                    {service.imageUrl
+                                        ? <img src={service.imageUrl} alt={service.title} style={styles.cardImg} />
+                                        : <div style={{ ...styles.cardImg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>No Image</div>
+                                    }
+                                    <div style={styles.cardBody}>
+                                        <p style={styles.cardTitle}>{service.title}</p>
+                                        <p style={styles.cardMeta}>🍽 Serves {service.servingSize}</p>
+                                        <p style={styles.cardMeta}>⏱ {service.estPrepTime} mins prep time</p>
+                                        <p style={styles.cardPrice}>Php {Number(service.ingredientsCost).toLocaleString()}</p>
+                                        <button style={styles.viewBtn} onClick={() => handleViewService(service)}>
+                                            View Details
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.certViewLink}>
-                                View
-                            </a>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    )}
+                </>
             )}
 
-            {/* Services */}
-            <h2 style={styles.sectionTitle}>Menu</h2>
-            {services.length === 0 ? (
-                <p style={{ color: '#999' }}>No services listed yet.</p>
-            ) : (
-                <div style={styles.grid}>
-                    {services.map(service => (
-                        <div key={service.id} style={styles.card}>
-                            {service.imageUrl
-                                ? <img src={service.imageUrl} alt={service.title} style={styles.cardImg} />
-                                : <div style={{ ...styles.cardImg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>No Image</div>
-                            }
-                            <div style={styles.cardBody}>
-                                <p style={styles.cardTitle}>{service.title}</p>
-                                <p style={styles.cardMeta}>🍽 Serves {service.servingSize}</p>
-                                <p style={styles.cardMeta}>⏱ {service.estPrepTime} mins prep time</p>
-                                <p style={styles.cardPrice}>Php {Number(service.ingredientsCost).toLocaleString()}</p>
-                                <button style={styles.viewBtn} onClick={() => handleViewService(service)}>
-                                    View Details
-                                </button>
-                            </div>
+            {/* Reviews Tab */}
+            {activeTab === 'Reviews' && (
+                <>
+                    {ratings.length === 0 ? (
+                        <p style={{ color: '#999' }}>No reviews yet.</p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {ratings.map(r => (
+                                <div key={r.id} style={{
+                                    border: '1.5px solid #eee',
+                                    borderRadius: '12px',
+                                    padding: '16px 20px',
+                                    backgroundColor: '#fdf8f2'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <span style={{ fontWeight: '700', fontSize: '14px' }}>{r.customerName}</span>
+                                        <span style={{ color: '#F5A623', fontSize: '16px' }}>
+                                            {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                                        </span>
+                                    </div>
+                                    {r.comment && (
+                                        <p style={{ fontSize: '14px', color: '#555', margin: 0 }}>{r.comment}</p>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    )}
+                </>
+            )}
+
+            {/* Certificates Tab */}
+            {activeTab === 'Certificates' && (
+                <>
+                    {certificates.length === 0 ? (
+                        <p style={{ color: '#999' }}>No verified certificates yet.</p>
+                    ) : (
+                        <div style={styles.certSection}>
+                            {certificates.map(cert => (
+                                <div key={cert.id} style={styles.certCard}>
+                                    <div style={styles.certInfo}>
+                                        <span style={{ fontSize: '24px' }}>📄</span>
+                                        <div>
+                                            <p style={styles.certTitle}>{cert.title}</p>
+                                            <span style={styles.certBadge}>✓ Verified</span>
+                                        </div>
+                                    </div>
+                                    <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.certViewLink}>
+                                        View
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
