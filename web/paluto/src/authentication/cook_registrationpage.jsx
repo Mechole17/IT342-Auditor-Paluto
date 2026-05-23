@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Ramen from '../asset/ramen.png';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function CookRegister() {
     const {login} = useAuth();
@@ -76,7 +77,7 @@ export default function CookRegister() {
         setError(null);
 
         try {
-            const response = await axios.post('http://localhost:8080/api/cook/register', formData);
+            const response = await axios.post(`${API_BASE_URL}/api/cook/register`, formData);
             if (response.data.success) {
                 // 1. Extract the data (token and user object)
                 const { accessToken, user } = response.data.data;

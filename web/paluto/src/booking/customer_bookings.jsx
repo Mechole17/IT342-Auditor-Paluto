@@ -1,15 +1,39 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from '../core/api.js';
 import BookingDetailsModal from "./bookings_details_modal";
-const TABS = ['Active', 'Completed', 'Rejected'];
+const TABS = ['Active', 'Completed', 'Rejected', 'Cancelled'];
 
 export default function CustomerBookingsPage() {
     const [activeTab, setActiveTab] = useState('Active');
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // === NEW STATE FOR MODAL ===
+    
     const [selectedBooking, setSelectedBooking] = useState(null);
+
+    const [cancellingId, setCancellingId] = useState(null);
+
+    const handleCancel = async (id) => {
+        const token = localStorage.getItem('token');
+        const confirm = window.confirm("Are you sure you want to cancel this booking? You will be refunded.");
+        if (!confirm) return;
+
+        try {
+            setCancellingId(id);
+            await axios.put(
+                `${API_BASE_URL}/api/bookings/${id}/cancel-booking`,
+                {}, 
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert("Booking cancelled successfully. Your refund will be processed.");
+            fetchBookings();
+        } catch (err) {
+            alert(err.response?.data?.error?.message || "Failed to cancel booking.");
+        } finally {
+            setCancellingId(null);
+        }
+    };
 
     const fetchBookings = async () => {
         try {
@@ -25,7 +49,7 @@ export default function CustomerBookingsPage() {
             const userId = userData.id;
 
             // Updated this to the general customer endpoint
-            const response = await axios.get(`http://localhost:8080/api/bookings/customer/${userId}`, {
+            const response = await axios.get(`${API_BASE_URL}/api/bookings/customer/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -51,7 +75,7 @@ export default function CustomerBookingsPage() {
             try {
                 const token = localStorage.getItem('token');
                 const response = await axios.post(
-                    'http://localhost:8080/api/bookings/create',
+                    `${API_BASE_URL}/api/bookings/create`,
                     JSON.parse(pendingBooking),
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
@@ -71,9 +95,10 @@ export default function CustomerBookingsPage() {
 
     const filtered = bookings.filter(b => {
         const status = b.status ? b.status.toLowerCase() : '';
-        if (activeTab === 'Active') return ['paid_pending', 'accepted', 'pending'].includes(status);
+        if (activeTab === 'Active') return ['paid_pending', 'accepted'].includes(status);
         if (activeTab === 'Completed') return status === 'completed';
-        if (activeTab === 'Rejected') return ['rejected_refunded', 'cancelled'].includes(status);
+        if (activeTab === 'Cancelled') return status === 'cancelled_refunded';
+        if (activeTab === 'Rejected') return status === 'rejected_refunded';
         return false;
     });
 
@@ -119,10 +144,23 @@ export default function CustomerBookingsPage() {
                             <div style={styles.cardRight}>
                                 <p style={{
                                     ...styles.paymentStatus,
-                                    color: booking.status.includes('PENDING') ? '#ec9812' : '#28a745'
+                                    color: booking.status.includes('PENDING') ? '#ec9812' 
+                                        : booking.status.includes('COMPLETED') ? '#28a745'
+                                        : booking.status.includes('REJECTED') || booking.status.includes('CANCELLED') ? '#d10b04'
+                                        : '#28a745'
                                 }}>
-                                    {booking.status.replace('_', ' ')}
+                                    {booking.status.replace(/_/g, ' ')}
                                 </p>
+
+                                {booking.status === 'PAID_PENDING' && (
+                                    <button
+                                        style={{ ...styles.detailsBtn, backgroundColor: '#fff', color: '#d10b04', border: '1.5px solid #d10b04' }}
+                                        onClick={() => handleCancel(booking.id)}
+                                        disabled={cancellingId === booking.id} // 🚀 Prevent double submittal clicks
+                                        >
+                                            {cancellingId === booking.id ? "Processing..." : "Cancel"}
+                                    </button>
+                                )}
                                 
                                 {/* === TRIGGER MODAL === */}
                                 <button 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'; // Added hooks
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Ensure axios is installed
+import { API_BASE_URL } from '../core/api.js'; // Import your API base URL
 
 export default function CustomerHomePage() {
     const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function CustomerHomePage() {
     useEffect(() => {
         const fetchServices = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/api/services/all');
+                const response = await axios.get(`${API_BASE_URL}/api/services/all`);
                 
                 // Uniformity check: response -> axios data -> our ApiResponse .data
                 if (response.data.success) {

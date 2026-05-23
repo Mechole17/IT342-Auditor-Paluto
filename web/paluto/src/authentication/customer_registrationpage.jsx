@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Ramen from '../asset/ramen.png';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function CustomerRegister() {
     const {login} = useAuth();
@@ -87,7 +88,7 @@ export default function CustomerRegister() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8080/api/customer/register', {
+            const response = await axios.post(`${API_BASE_URL}/api/customer/register`, {
                 firstname: formData.firstname,
                 lastname: formData.lastname,
                 address: formData.address,

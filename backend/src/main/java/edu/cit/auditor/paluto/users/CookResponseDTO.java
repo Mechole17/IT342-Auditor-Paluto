@@ -14,4 +14,5 @@ public class CookResponseDTO {
     private BigDecimal hourlyRate;
     private Integer yearsXp;
     private String bio;
+    private Double averageRating;
 }

@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import LoginModal from '../../authentication/modals/loginmodal.jsx';
+import { API_BASE_URL } from '../api.js'; // Import your API base URL
 
 const AuthContext = createContext(null);
 
@@ -19,7 +20,7 @@ export default function AuthProvider({ children }) {
             if (savedToken) {
                 try {
                     // ACTIVE CHECK: Ask backend if this token is still good
-                    const res = await axios.get('http://localhost:8080/api/auth/me', {
+                    const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
                         headers: { Authorization: `Bearer ${savedToken}` }
                     });
 

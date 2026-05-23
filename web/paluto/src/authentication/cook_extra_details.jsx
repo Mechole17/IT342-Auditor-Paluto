@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function CookExtraDetails() {
     const { state } = useLocation();
@@ -49,7 +50,7 @@ export default function CookExtraDetails() {
         const payload = { ...state, ...formData, role: 'COOK' };
 
         try {
-            const res = await axios.post('http://localhost:8080/api/auth/register-oauth-final', payload);
+            const res = await axios.post(`${API_BASE_URL}/api/auth/register-oauth-final`, payload);
             
             // DEBUG: Look at this in your browser console (F12)
             console.log("Full Backend Response:", res.data);

@@ -1,9 +1,7 @@
 package edu.cit.auditor.paluto.booking;
 
 import edu.cit.auditor.paluto.core.entities.*;
-import edu.cit.auditor.paluto.core.repositories.BookingRepository;
-import edu.cit.auditor.paluto.core.repositories.ServiceRepository;
-import edu.cit.auditor.paluto.core.repositories.UserRepository;
+import edu.cit.auditor.paluto.core.repositories.*;
 import edu.cit.auditor.paluto.booking.strategy.PricingStrategy;
 import edu.cit.auditor.paluto.booking.strategy.ScaledPricingStrategy;
 import edu.cit.auditor.paluto.booking.strategy.StandardPricingStrategy;
@@ -30,6 +28,8 @@ public class BookingService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final RefundService refundService;
+    private final CookRepository cookRepository;
+    private final RatingRepository ratingRepository;
 
     public void verifyCookAvailability(Long cookId, LocalDate date) {
         List<String> activeStatuses = List.of("PAID_PENDING", "ACCEPTED", "COMPLETED");
@@ -104,6 +104,7 @@ public class BookingService {
                         .scheduledDate(booking.getScheduledDate().toString())
                         .scheduledTime(booking.getScheduledTime().toString())
                         .status(booking.getStatus() != null ? booking.getStatus().toString() : "PENDING")
+                        .cookName(booking.getCook().getFirstname() + " " + booking.getCook().getLastname())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -209,14 +210,22 @@ public class BookingService {
                         "ACCEPTED".equalsIgnoreCase(b.getStatus()))
                 .count();
 
-        long upcoming = bookings.stream()
-                .filter(b -> "ACCEPTED".equalsIgnoreCase(b.getStatus()))
-                .count();
+        // 1. Get the raw average from your query (returns Double, can be null)
+        Double rawRating = ratingRepository.getAverageRatingByCookId(cookId);
+
+        // 2. Assign safely: if null, default to 0.0
+        Double avgRating = (rawRating != null) ? rawRating : 0.0;
+
+        // Get actual earnings from Cook entity
+        Cook cook = cookRepository.findById(cookId)
+                .orElseThrow(() -> new RuntimeException("Cook not found"));
+
+        BigDecimal earnings = cook.getEarningsBalance() != null ? cook.getEarningsBalance() : BigDecimal.ZERO;
 
         Map<String, Object> stats = new HashMap<>();
+        stats.put("avgRating", avgRating);
         stats.put("completedBookings", completedBookings);
-        stats.put("upcomingBookings", upcoming);
-        stats.put("averageRating", 4.8); // Placeholder
+        stats.put("totalEarnings", earnings); // Placeholder
 
         return stats;
     }

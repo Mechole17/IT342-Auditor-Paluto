@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function MealDetails() {
     const { id } = useParams();
@@ -12,7 +13,7 @@ export default function MealDetails() {
     useEffect(() => {
         const fetchService = async () => {
             try {
-                const res = await axios.get(`http://localhost:8080/api/services/${id}`);
+                const res = await axios.get(`${API_BASE_URL}/api/services/${id}`);
                 if (res.data.success) setService(res.data.data);
                 console.log("Fetched service details:", res.data);
             } catch (err) { console.error(err); }

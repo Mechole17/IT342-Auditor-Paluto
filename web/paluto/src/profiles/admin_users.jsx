@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../core/context/AuthContext'; // Adjust path if necessary
+import { API_BASE_URL } from '../core/api.js'; // Import your API base URL
 
 export default function AdminUsers() {
     const { user } = useAuth(); // Assuming your auth context provides a way to get the current token
@@ -13,7 +14,7 @@ export default function AdminUsers() {
                 // Retrieve your JWT token (adjust this based on where you store it: localStorage, cookies, or context)
                 const token = localStorage.getItem('token'); 
 
-                const response = await fetch('http://localhost:8080/api/admin/users', {
+                const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

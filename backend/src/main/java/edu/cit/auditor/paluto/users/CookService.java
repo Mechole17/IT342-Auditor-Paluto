@@ -2,6 +2,7 @@ package edu.cit.auditor.paluto.users;
 
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.core.events.UserRegisteredEvent;
+import edu.cit.auditor.paluto.core.repositories.RatingRepository;
 import edu.cit.auditor.paluto.infrastructure.exception.EmailAlreadyExistsException;
 import edu.cit.auditor.paluto.core.repositories.CookRepository;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class CookService {
     private final CookRepository cookRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final RatingRepository ratingRepository;
 
     @Transactional
     public Cook registerCook(CookRegistrationDTO dto){
@@ -52,7 +56,18 @@ public class CookService {
     }
 
     public List<CookResponseDTO> getAllCooks() {
-        return cookRepository.findAll().stream()
+        // 1. Fetch all cooks (Query 1)
+        List<Cook> cooks = cookRepository.findAll();
+
+        // 2. Fetch all averages in bulk (Query 2)
+        Map<Long, Double> averageRatingsMap = ratingRepository.getAllAverageRatings().stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],  // cookId
+                        row -> (Double) row[1] // average rating
+                ));
+
+        // 3. Map to DTO cleanly in memory with NO extra database hits
+        return cooks.stream()
                 .map(cook -> CookResponseDTO.builder()
                         .id(cook.getId())
                         .firstname(cook.getFirstname())
@@ -60,6 +75,8 @@ public class CookService {
                         .hourlyRate(cook.getHourlyRate())
                         .yearsXp(cook.getYearsXp())
                         .bio(cook.getBio())
+                        // Look up from memory map; default to 0.0 if missing
+                        .averageRating(averageRatingsMap.getOrDefault(cook.getId(), 0.0))
                         .build())
                 .toList();
     }

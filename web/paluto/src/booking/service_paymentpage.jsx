@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../core/api.js';
 
 // MUI Calendar Imports
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -50,7 +51,7 @@ export default function PaymentPage() {
         const fetchService = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get(`http://localhost:8080/api/services/${savedParsed.serviceId}`, {
+                const res = await axios.get(`${API_BASE_URL}/api/services/${savedParsed.serviceId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 setService(res.data.data);
@@ -70,7 +71,7 @@ export default function PaymentPage() {
     const fetchDates = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get(`http://localhost:8080/api/bookings/cooks/${service.cookId}/booked-dates`, {
+                const res = await axios.get(`${API_BASE_URL}/api/bookings/cooks/${service.cookId}/booked-dates`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -140,7 +141,7 @@ export default function PaymentPage() {
             const token = localStorage.getItem('token');
 
             // ADDED: Call PayMongo checkout first, not bookings/create
-            const checkoutResponse = await axios.post('http://localhost:8080/api/payment/checkout', {
+            const checkoutResponse = await axios.post(`${API_BASE_URL}/api/payment/checkout`, {
                 amount: total,
                 serviceId: service.id,
                 quantity: qty,
