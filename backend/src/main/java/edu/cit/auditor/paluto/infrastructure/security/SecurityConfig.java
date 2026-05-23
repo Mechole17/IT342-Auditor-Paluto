@@ -63,6 +63,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/storage/certificate-upload").hasAuthority("COOK")
                         .requestMatchers("/api/certificates/pending").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PATCH,"/api/certificates/*/review").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/ratings/cook/**").permitAll()
+                        .requestMatchers("/api/ratings/submit").hasAuthority("CUSTOMER")
+                        .requestMatchers("/api/ratings/check/**").hasAuthority("CUSTOMER")
                         .anyRequest().authenticated()
                 )
 
