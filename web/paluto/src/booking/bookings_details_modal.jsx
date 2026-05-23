@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function BookingDetailsModal({ booking: initialBooking, onClose }) {
     const { user } = useAuth(); 
@@ -12,7 +13,7 @@ export default function BookingDetailsModal({ booking: initialBooking, onClose }
         const fetchDetails = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:8080/api/bookings/${initialBooking.id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/bookings/${initialBooking.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'

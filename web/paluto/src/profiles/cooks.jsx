@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function Cooks() {
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function Cooks() {
     useEffect(() => {
         const fetchCooks = async () => {
             try {
-                const res = await axios.get('http://localhost:8080/api/cook/all');
+                const res = await axios.get(`${API_BASE_URL}/api/cook/all`);
                 setCooks(res.data.data);
             } catch (err) {
                 console.error("Failed to fetch cooks", err);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../core/context/AuthContext';
+import { API_BASE_URL } from '../core/api.js';
 
 export default function CookPortfolio() {
     const { token } = useAuth();
@@ -29,7 +30,7 @@ export default function CookPortfolio() {
     const fetchServices = async () => {
         try {
             const res = await axios.get(
-                'http://localhost:8080/api/services/my-services',
+                `${API_BASE_URL}/api/services/my-services`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setServices(res.data.data || []);
@@ -41,7 +42,7 @@ export default function CookPortfolio() {
     const fetchCertificates = async () => {
         try {
             const res = await axios.get(
-                'http://localhost:8080/api/certificates/my-certificates',
+                `${API_BASE_URL}/api/certificates/my-certificates`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setCertificates(res.data.data || []);
@@ -113,7 +114,7 @@ export default function CookPortfolio() {
                 imageData.append('file', imageFile);
 
                 const uploadRes = await axios.post(
-                    'http://localhost:8080/api/storage/service-upload',
+                    `${API_BASE_URL}/api/storage/service-upload`,
                     imageData,
                     { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
                 );
@@ -129,7 +130,7 @@ export default function CookPortfolio() {
             };
 
             await axios.post(
-                'http://localhost:8080/api/services/create',
+                `${API_BASE_URL}/api/services/create`,
                 payload,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -159,7 +160,7 @@ export default function CookPortfolio() {
             fileData.append('file', certFile);
 
             const uploadRes = await axios.post(
-                'http://localhost:8080/api/storage/certificate-upload',
+                `${API_BASE_URL}/api/storage/certificate-upload`,
                 fileData,
                 { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
             );
@@ -167,7 +168,7 @@ export default function CookPortfolio() {
 
             // 2. Save certificate
             await axios.post(
-                'http://localhost:8080/api/certificates/upload',
+                `${API_BASE_URL}/api/certificates/upload`,
                 { title: certTitle, fileUrl },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -187,7 +188,7 @@ export default function CookPortfolio() {
 
         try {
             await axios.delete(
-                `http://localhost:8080/api/certificates/${certId}`,
+                `${API_BASE_URL}/api/certificates/${certId}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             fetchCertificates();
