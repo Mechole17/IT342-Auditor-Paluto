@@ -14,6 +14,54 @@ export default function CustomerBookingsPage() {
 
     const [cancellingId, setCancellingId] = useState(null);
 
+    // Add state for rating modal
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [ratingBooking, setRatingBooking] = useState(null);
+    const [ratingValue, setRatingValue] = useState(0);
+    const [ratingComment, setRatingComment] = useState('');
+    const [hasRated, setHasRated] = useState({});
+
+    useEffect(() => {
+        const completedBookings = bookings.filter(b => b.status === 'COMPLETED');
+        completedBookings.forEach(b => checkIfRated(b.id));
+    }, [bookings]);
+
+    // Check if booking has been rated
+    const checkIfRated = async (bookingId) => {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await axios.get(
+                `${API_BASE_URL}/api/ratings/check/${bookingId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setHasRated(prev => ({ ...prev, [bookingId]: res.data.data }));
+        } catch (err) {
+            console.error("Failed to check rating", err);
+        }
+    };
+
+    const handleSubmitRating = async () => {
+        const token = localStorage.getItem('token');
+        if (ratingValue === 0) {
+            alert("Please select a star rating.");
+            return;
+        }
+        try {
+            await axios.post(
+                `${API_BASE_URL}/api/ratings/submit`,
+                { bookingId: ratingBooking.id, rating: ratingValue, comment: ratingComment },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert("Rating submitted successfully!");
+            setShowRatingModal(false);
+            setRatingValue(0);
+            setRatingComment('');
+            setHasRated(prev => ({ ...prev, [ratingBooking.id]: true }));
+        } catch (err) {
+            alert(err.response?.data?.error?.message || "Failed to submit rating.");
+        }
+    };
+
     const handleCancel = async (id) => {
         const token = localStorage.getItem('token');
         const confirm = window.confirm("Are you sure you want to cancel this booking? You will be refunded.");
@@ -160,6 +208,79 @@ export default function CustomerBookingsPage() {
                                         >
                                             {cancellingId === booking.id ? "Processing..." : "Cancel"}
                                     </button>
+                                )}
+
+                                {booking.status === 'COMPLETED' && (
+                                    <button
+                                        style={{
+                                            ...styles.detailsBtn,
+                                            backgroundColor: hasRated[booking.id] ? '#ccc' : '#F5A623',
+                                            cursor: hasRated[booking.id] ? 'not-allowed' : 'pointer'
+                                        }}
+                                        disabled={hasRated[booking.id]}
+                                        onClick={() => {
+                                            setRatingBooking(booking);
+                                            setShowRatingModal(true);
+                                            checkIfRated(booking.id);
+                                        }}
+                                    >
+                                        {hasRated[booking.id] ? 'Rated' : 'Rate'}
+                                    </button>
+                                )}
+
+                                {showRatingModal && ratingBooking && (
+                                    <div style={{
+                                        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                                    }}>
+                                        <div style={{
+                                            backgroundColor: '#fff', borderRadius: '20px', padding: '40px',
+                                            width: '420px', position: 'relative'
+                                        }}>
+                                            <button style={{
+                                                position: 'absolute', top: '16px', right: '20px',
+                                                background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer'
+                                            }} onClick={() => setShowRatingModal(false)}>✕</button>
+
+                                            <h2 style={{ marginTop: 0 }}>Rate your Cook!</h2>
+                                            <p style={{ color: '#000000' }}>Cook {ratingBooking.cookName}</p>
+
+                                            {/* Star Rating */}
+                                            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <span
+                                                        key={star}
+                                                        style={{ fontSize: '64px', cursor: 'pointer', color: star <= ratingValue ? '#F5A623' : '#ddd' }}
+                                                        onClick={() => setRatingValue(star)}
+                                                    >
+                                                        ★
+                                                    </span>
+                                                ))}
+                                            </div>
+
+                                            <textarea
+                                                placeholder="Leave a comment (optional)..."
+                                                style={{
+                                                    width: '100%', padding: '12px', borderRadius: '12px',
+                                                    border: '1.5px solid #ccc', fontSize: '14px', height: '80px',
+                                                    resize: 'none', boxSizing: 'border-box', marginBottom: '16px'
+                                                }}
+                                                value={ratingComment}
+                                                onChange={(e) => setRatingComment(e.target.value)}
+                                            />
+
+                                            <button
+                                                style={{
+                                                    width: '100%', backgroundColor: '#F5A623', color: '#fff',
+                                                    border: 'none', borderRadius: '12px', padding: '14px',
+                                                    fontWeight: '700', fontSize: '16px', cursor: 'pointer'
+                                                }}
+                                                onClick={handleSubmitRating}
+                                            >
+                                                Submit Rating
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
                                 
                                 {/* === TRIGGER MODAL === */}

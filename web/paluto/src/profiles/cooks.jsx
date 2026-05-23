@@ -116,7 +116,9 @@ export default function Cooks() {
                                 </p>
 
                                 <div style={styles.cardBottom}>
-                                    <span style={styles.rating}>4.5 ⭐</span>
+                                    <span style={styles.rating}>
+                                        {cook.averageRating ? `${cook.averageRating.toFixed(1)} ⭐` : 'No ratings'}
+                                    </span>
                                     <span style={styles.rate}>Php {Number(cook.hourlyRate).toLocaleString()}</span>
                                 </div>
 
