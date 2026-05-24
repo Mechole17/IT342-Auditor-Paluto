@@ -51,7 +51,7 @@
             android:name=".LandingActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Paluto">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
