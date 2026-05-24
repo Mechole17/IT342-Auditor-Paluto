@@ -7,8 +7,10 @@ data class LoginResponse(
 )
 
 data class UserResponse(
+    val id: Long,
     val email: String,
     val firstname: String,
     val lastname: String,
-    val role: String
+    val role: String,
+    val address: String,
 )

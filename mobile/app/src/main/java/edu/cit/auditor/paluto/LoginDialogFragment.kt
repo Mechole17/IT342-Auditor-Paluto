@@ -82,6 +82,7 @@ class LoginDialogFragment : DialogFragment() {
                             putString("JWT_TOKEN", loginData.accessToken)
                             putString("USER_ROLE", role)
                             putString("USER_NAME", loginData.user.firstname)
+                            putLong("USER_ID", loginData.user.id)
                             apply()
                         }
 
