@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import edu.cit.auditor.paluto.api.RetrofitClient
 import edu.cit.auditor.paluto.databinding.DialogLoginBinding
 import edu.cit.auditor.paluto.dto.LoginRequest
@@ -45,8 +46,8 @@ class LoginDialogFragment : DialogFragment() {
             return
         }
 
-        // Use Coroutines for API call
-        CoroutineScope(Dispatchers.Main).launch {
+        // Use lifecycleScope for API call
+        viewLifecycleOwner.lifecycleScope.launch {
             setUIState(true)
             try {
                 val response = RetrofitClient.instance.login(LoginRequest(email, password))
@@ -58,10 +59,10 @@ class LoginDialogFragment : DialogFragment() {
                     // 1. Unified Role Check
                     val intent = when (role) {
                         "COOK" -> { Toast.makeText(context, "Successful cook login", Toast.LENGTH_LONG).show()
-                                    Intent(requireContext(), CookDashboardActivity::class.java)
+                                    Intent(requireContext(), CookLandingActivity::class.java)
                         }
                         "CUSTOMER" -> { Toast.makeText(context, "Successful customer login", Toast.LENGTH_LONG).show()
-                                        Intent(requireContext(), CustomerDashboardActivity::class.java)
+                                        Intent(requireContext(), CustomerLandingActivity::class.java)
                         }
                         "ADMIN" -> {
                             Toast.makeText(context, "Admin access is restricted to the Web Portal.", Toast.LENGTH_LONG).show()
@@ -87,6 +88,9 @@ class LoginDialogFragment : DialogFragment() {
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         dismiss()
+                    } else {
+                    // Reset UI if role was invalid or loginData is null
+                    setUIState(false)
                     }
                 } else {
                     val err_msg = NetworkUtils.parseError(response)
