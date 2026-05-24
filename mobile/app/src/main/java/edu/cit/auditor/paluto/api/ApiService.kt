@@ -1,18 +1,8 @@
 package edu.cit.auditor.paluto.api
 
-import edu.cit.auditor.paluto.dto.CookRegistrationRequest
-import edu.cit.auditor.paluto.dto.CookResponse
-import edu.cit.auditor.paluto.dto.CustomerRegistrationRequest
-import edu.cit.auditor.paluto.dto.LoginRequest
-import edu.cit.auditor.paluto.dto.LoginResponse
-import edu.cit.auditor.paluto.dto.ServiceResponse
-import edu.cit.auditor.paluto.dto.CertificateResponse
-import edu.cit.auditor.paluto.dto.RatingResponse
+import edu.cit.auditor.paluto.dto.*
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface ApiService {
     @POST("api/auth/login")
@@ -62,4 +52,29 @@ interface ApiService {
     suspend fun getServiceById(
         @Path("id") id: Long
     ): Response<ApiResponse<ServiceResponse>>
+
+    @GET("api/bookings/customer/{userId}")
+    suspend fun getCustomerBookings(
+        @Path("userId") userId: Long
+    ): Response<ApiResponse<List<BookingResponse>>>
+
+    @GET("api/bookings/{id}")
+    suspend fun getBookingById(
+        @Path("id") id: Long
+    ): Response<ApiResponse<BookingResponse>>
+
+    @PUT("api/bookings/{id}/cancel-booking")
+    suspend fun cancelBooking(
+        @Path("id") id: Long
+    ): Response<ApiResponse<Any?>>
+
+    @GET("api/ratings/check/{bookingId}")
+    suspend fun checkIfRated(
+        @Path("bookingId") bookingId: Long
+    ): Response<ApiResponse<Boolean>>
+
+    @POST("api/ratings/submit")
+    suspend fun submitRating(
+        @Body request: RatingRequest
+    ): Response<ApiResponse<Any?>>
 }

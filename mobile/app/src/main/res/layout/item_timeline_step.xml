@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="65dp">
+
+    <View
+        android:id="@+id/indicatorCircle"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="#ddd"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="4dp"/>
+
+    <View
+        android:id="@+id/line"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="#ddd"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/indicatorCircle"
+        app:layout_constraintStart_toStartOf="@id/indicatorCircle"
+        app:layout_constraintTop_toBottomOf="@id/indicatorCircle" />
+
+    <TextView
+        android:id="@+id/tvStepLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="Payment Confirmed"
+        android:textColor="#aaa"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/indicatorCircle"
+        app:layout_constraintTop_toTopOf="@id/indicatorCircle"
+        app:layout_constraintBottom_toTopOf="@+id/tvStepDesc"/>
+
+    <TextView
+        android:id="@+id/tvStepDesc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="May 20, 11:17 PM"
+        android:textColor="#888"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tvStepLabel"
+        app:layout_constraintTop_toBottomOf="@id/tvStepLabel" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
