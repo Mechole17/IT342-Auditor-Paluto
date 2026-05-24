@@ -91,7 +91,7 @@ class CookRegistrationStep2Fragment : Fragment() {
                         Toast.makeText(requireContext(), "Welcome Chef ${loginData.user.firstname}!", Toast.LENGTH_LONG).show()
 
                         // 3. Redirect to Cook Dashboard
-                        val intent = Intent(requireContext(), CookDashboardActivity::class.java)
+                        val intent = Intent(requireContext(), CookLandingActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         requireActivity().finish()

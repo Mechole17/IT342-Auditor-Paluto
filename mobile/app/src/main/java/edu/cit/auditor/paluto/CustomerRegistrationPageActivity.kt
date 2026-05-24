@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import edu.cit.auditor.paluto.api.RetrofitClient
 import edu.cit.auditor.paluto.databinding.ActivityCustomerRegistrationPageBinding
@@ -102,7 +101,7 @@ class CustomerRegistrationPageActivity : AppCompatActivity() {
                         // 3. Direct Redirect to Customer Dashboard
                         Toast.makeText(this@CustomerRegistrationPageActivity, "Welcome to Paluto, ${loginData.user.firstname}!", Toast.LENGTH_LONG).show()
 
-                        val intent = Intent(this@CustomerRegistrationPageActivity, CustomerDashboardActivity::class.java)
+                        val intent = Intent(this@CustomerRegistrationPageActivity, CustomerLandingActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
