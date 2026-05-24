@@ -77,4 +77,14 @@ interface ApiService {
     suspend fun submitRating(
         @Body request: RatingRequest
     ): Response<ApiResponse<Any?>>
+
+    @POST("api/payment/checkout")
+    suspend fun checkout(
+        @Body request: CheckoutRequest
+    ): Response<ApiResponse<Map<String, Any>>>
+
+    @GET("api/bookings/cooks/{cookId}/booked-dates")
+    suspend fun getBookedDates(
+        @Path("cookId") cookId: Long
+    ): Response<ApiResponse<List<String>>>
 }

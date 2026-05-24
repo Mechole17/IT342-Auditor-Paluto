@@ -29,12 +29,23 @@
             android:exported="false" />
         <activity
             android:name=".CustomerLandingActivity"
-            android:exported="false" />
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="paluto" android:host="payment-success" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".CookProfileActivity"
             android:exported="false" />
         <activity
             android:name=".MealDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BookingPaymentActivity"
             android:exported="false" />
         <activity
             android:name=".LandingActivity"
