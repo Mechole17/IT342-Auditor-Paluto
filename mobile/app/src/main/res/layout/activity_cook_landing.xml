@@ -17,7 +17,7 @@
         android:layout_marginTop="10dp"
         android:fontFamily="sans-serif-black"
         android:text="PALUTO"
-        android:textColor="@color/black"
+        android:textColor="#ff914d"
         android:textSize="28sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

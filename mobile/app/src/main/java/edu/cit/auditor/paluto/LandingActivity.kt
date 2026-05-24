@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import edu.cit.auditor.paluto.databinding.ActivityLandingBinding
 
 class LandingActivity : AppCompatActivity() {
@@ -12,6 +13,9 @@ class LandingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLandingBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Handle the splash screen transition
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
 
         // 1. Check for existing session
