@@ -1,5 +1,7 @@
 package edu.cit.auditor.paluto.dto
 
+import java.io.Serializable
+
 data class ServiceResponse(
     val id: Long,
     val cookId: Long,
@@ -11,4 +13,4 @@ data class ServiceResponse(
     val estPrepTime: Int,
     val servingSize: Int,
     val cookHourlyRate: Double
-)
+) : Serializable

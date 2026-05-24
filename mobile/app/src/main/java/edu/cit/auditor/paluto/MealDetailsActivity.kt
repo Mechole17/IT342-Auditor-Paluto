@@ -1,5 +1,6 @@
 package edu.cit.auditor.paluto
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -37,8 +38,12 @@ class MealDetailsActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
 
         binding.btnBook.setOnClickListener {
-            // Handle booking logic or navigate to payment
-            Toast.makeText(this, "Booking feature coming soon!", Toast.LENGTH_SHORT).show()
+            service?.let { s ->
+                val intent = Intent(this, BookingPaymentActivity::class.java)
+                intent.putExtra("SERVICE_DATA", s)
+                intent.putExtra("QUANTITY", quantity)
+                startActivity(intent)
+            }
         }
     }
 

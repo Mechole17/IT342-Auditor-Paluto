@@ -16,6 +16,9 @@ class CustomerLandingActivity : AppCompatActivity() {
         binding = ActivityCustomerLandingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Handle possible deep link
+        handleIntent(intent)
+
         // 1. Session & Role Verification
         val sharedPref = getSharedPreferences("PalutoPrefs", Context.MODE_PRIVATE)
         val role = sharedPref.getString("USER_ROLE", "")
@@ -25,12 +28,33 @@ class CustomerLandingActivity : AppCompatActivity() {
             return
         }
 
-        // 2. Set default fragment
+        // 2. Set default fragment or handle redirect
         if (savedInstanceState == null) {
-            replaceFragment(CustomerHomeFragment())
+            val targetTab = intent.getStringExtra("SELECT_TAB")
+            if (targetTab == "BOOKINGS") {
+                binding.bottomNavigation.selectedItemId = R.id.nav_bookings
+                replaceFragment(CustomerBookingsFragment())
+            } else {
+                replaceFragment(CustomerHomeFragment())
+            }
         }
 
         setupBottomNavigation()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        val targetTab = intent.getStringExtra("SELECT_TAB")
+        val data = intent.data
+
+        if (targetTab == "BOOKINGS" || data?.scheme == "paluto") {
+            binding.bottomNavigation.selectedItemId = R.id.nav_bookings
+            replaceFragment(CustomerBookingsFragment())
+        }
     }
 
     private fun setupBottomNavigation() {

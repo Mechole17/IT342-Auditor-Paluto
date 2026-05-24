@@ -68,7 +68,7 @@ class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(
                 tvServiceTitle.text = service.title
                 tvServingSize.text = "🍽 Serves ${service.servingSize}"
                 tvPrepTime.text = "⏱ ${service.estPrepTime} mins prep time"
-                tvPrice.text = "Php ${String.format("%.0f", service.ingredientsCost)}"
+                tvPrice.text = "Php ${String.format("%,.0f", service.ingredientsCost)}"
                 
                 if (!service.imageUrl.isNullOrEmpty()) {
                     ivServiceImage.load(service.imageUrl) {

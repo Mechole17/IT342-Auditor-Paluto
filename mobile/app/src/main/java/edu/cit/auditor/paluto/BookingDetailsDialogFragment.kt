@@ -79,7 +79,7 @@ class BookingDetailsDialogFragment : DialogFragment() {
             tvCounterpartyName.text = if (role == "COOK") booking.customerName else booking.cookName
             tvSchedule.text = "${booking.scheduledDate} at ${booking.scheduledTime}"
             tvAddress.text = booking.serviceAddress ?: "No address provided"
-            tvAmount.text = "₱${String.format("%,.1f", booking.totalAmount)}"
+            tvAmount.text = "₱${String.format("%,.2f", booking.totalAmount ?: 0.0)}"
             
             setupTimeline(booking)
         }

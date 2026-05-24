@@ -24,7 +24,7 @@ class CookAdapter(private var cooks: List<CookResponse>) : RecyclerView.Adapter<
             tvExperience.text = "${cook.yearsXp} yrs"
             tvRating.text = String.format("%.1f", cook.averageRating)
             tvBio.text = "Bio: ${cook.bio}"
-            tvPrice.text = "Php ${String.format("%.0f", cook.hourlyRate)}"
+            tvPrice.text = "Php ${String.format("%,.0f", cook.hourlyRate)}"
             
             // Set Initials
             val initials = "${cook.firstname.take(1)}${cook.lastname.take(1)}".uppercase()

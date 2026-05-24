@@ -136,8 +136,9 @@ class CustomerBookingsFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 binding.progressBar.visibility = View.GONE
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                e.printStackTrace()
+                if (e !is kotlinx.coroutines.CancellationException && e.message?.contains("cancelled", true) != true) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
