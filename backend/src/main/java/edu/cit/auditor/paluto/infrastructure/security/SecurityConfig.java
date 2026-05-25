@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment/webhook").permitAll()
                         .requestMatchers("/api/payment/checkout").hasAuthority("CUSTOMER")
                         .requestMatchers(HttpMethod.GET,"api/admin/user").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "api/admin/dashboard-stats").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/cook/**").hasAuthority("COOK")
                         .requestMatchers(HttpMethod.PUT, "/api/bookings/*/status").hasAuthority("COOK")
                         .requestMatchers(HttpMethod.PUT, "/api/bookings/*/cancel-booking").hasAuthority("CUSTOMER")

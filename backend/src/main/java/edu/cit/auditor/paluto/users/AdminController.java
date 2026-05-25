@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
     private final UserService userService;
+    private final AdminService adminService;
 
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<List<User>>> fetchAllUsers(Authentication authentication) {
@@ -35,6 +37,25 @@ public class AdminController {
         } catch (Exception e) {
             // Using an appropriate error code and status for a fetch failure
             return ResponseUtility.error("ADM-001", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/dashboard-stats")
+    public ResponseEntity<ApiResponse<AdminDashboardDTO>> getDashboardStats() {
+        try {
+            // Unpack the data properties from our service execution tracks
+            AdminDashboardDTO stats = adminService.getDashboardStats();
+
+            // 🚀 FIXED: success(T data, HttpStatus status)
+            return ResponseUtility.success(stats, HttpStatus.OK);
+
+        } catch (Exception e) {
+            // 🚀 FIXED: error(String code, String message, HttpStatus status)
+            return ResponseUtility.error(
+                    "ADM-001",
+                    "Failed to fetch stats: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 }

@@ -12,4 +12,5 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     List<Certificate> findByStatus(String status); // for admin to see all pending
     List<Certificate> findByCookIdAndStatusNot(Long cookId, String status);
     List<Certificate> findByStatusNot(String status);
+    long countByStatus(String status);
 }

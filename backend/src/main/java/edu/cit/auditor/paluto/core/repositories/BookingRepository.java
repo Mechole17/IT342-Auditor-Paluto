@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,4 +22,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
     @Query("SELECT b.scheduledDate FROM Booking b WHERE b.cook.id = :cookId AND b.status IN ('PAID_PENDING', 'ACCEPTED')")
     List<LocalDate> findBookedDatesByCookId(@Param("cookId") Long cookId);
+
+    long countByStatus(String status);
+
+    @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Booking b WHERE b.status = 'COMPLETED'")
+    BigDecimal sumTotalRevenueForCompletedBookings();
 }
