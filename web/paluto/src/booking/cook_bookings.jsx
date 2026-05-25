@@ -4,11 +4,11 @@ import { useAuth } from "../core/context/AuthContext";
 import BookingDetailsModal from "./bookings_details_modal";
 import { API_BASE_URL } from '../core/api.js';
 
-const TABS = ['Requests', 'Upcoming', 'History'];
+const TABS = ['Pending', 'Active', 'History'];
 
 export default function CookBookings() {
     const { user, token } = useAuth();
-    const [activeTab, setActiveTab] = useState('Requests');
+    const [activeTab, setActiveTab] = useState('Pending');
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -78,8 +78,8 @@ export default function CookBookings() {
     };
 
     const filteredBookings = bookings.filter(b => {
-        if (activeTab === 'Requests') return b.status === 'PAID_PENDING';
-        if (activeTab === 'Upcoming') return b.status === 'ACCEPTED';
+        if (activeTab === 'Pending') return b.status === 'PAID_PENDING';
+        if (activeTab === 'Active') return b.status === 'ACCEPTED';
         if (activeTab === 'History') return ['COMPLETED', 'REJECTED_REFUNDED', 'CANCELLED_REFUNDED'].includes(b.status);
         return true;
     });
