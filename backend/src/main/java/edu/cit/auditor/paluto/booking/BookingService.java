@@ -206,8 +206,7 @@ public class BookingService {
         List<BookingResponseDTO> bookings = getCookBookings(cookId);
 
         long completedBookings = bookings.stream()
-                .filter(b -> "COMPLETED".equalsIgnoreCase(b.getStatus()) ||
-                        "ACCEPTED".equalsIgnoreCase(b.getStatus()))
+                .filter(b -> "COMPLETED".equalsIgnoreCase(b.getStatus()))
                 .count();
 
         // 1. Get the raw average from your query (returns Double, can be null)
