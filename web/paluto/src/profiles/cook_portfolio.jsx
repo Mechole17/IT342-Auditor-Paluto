@@ -17,8 +17,24 @@ export default function CookPortfolio() {
     const [certTitle, setCertTitle] = useState('');
     const [services, setServices] = useState([]);
     const [certificates, setCertificates] = useState([]);
+    //edit service
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingService, setEditingService] = useState(null);
+    const [editImageFile, setEditImageFile] = useState(null);
+    const [editImagePreview, setEditImagePreview] = useState(null);
+    const [editLoading, setEditLoading] = useState(false);
+    const [editError, setEditError] = useState(null);
 
     const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        servingSize: '',
+        ingredientsList: '',
+        ingredientsCost: '',
+        estPrepTime: '',
+    });
+
+    const [editFormData, setEditFormData] = useState({
         title: '',
         description: '',
         servingSize: '',
@@ -142,6 +158,81 @@ export default function CookPortfolio() {
             setError(msg);
         } finally {
             setLoading(false);
+        }
+    };
+    //edit handlers
+    const handleEditClick = (service) => {
+        setEditingService(service);
+        setEditFormData({
+            title: service.title,
+            description: service.description,
+            servingSize: service.servingSize,
+            ingredientsList: service.ingredientsList,
+            ingredientsCost: service.ingredientsCost,
+            estPrepTime: service.estPrepTime,
+        });
+        setEditImagePreview(service.imageUrl);
+        setEditError(null);
+        setShowEditModal(true);
+    };
+
+    const handleEditChange = (e) => {
+        setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+    };
+
+    const handleEditImageChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setEditImageFile(file);
+        setEditImagePreview(URL.createObjectURL(file));
+    };
+
+    const handleEditSubmit = async () => {
+        if (!editFormData.title || !editFormData.description || !editFormData.servingSize ||
+            !editFormData.ingredientsList || !editFormData.ingredientsCost || !editFormData.estPrepTime) {
+            setEditError("Please fill in all required fields.");
+            return;
+        }
+
+        setEditLoading(true);
+        setEditError(null);
+
+        try {
+            let imageUrl = editingService.imageUrl;
+
+            if (editImageFile) {
+                const imageData = new FormData();
+                imageData.append('file', editImageFile);
+                const uploadRes = await axios.post(
+                    'http://localhost:8080/api/storage/service-upload',
+                    imageData,
+                    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
+                );
+                imageUrl = uploadRes.data.url;
+            }
+
+            const payload = {
+                ...editFormData,
+                servingSize: parseInt(editFormData.servingSize, 10),
+                ingredientsCost: parseFloat(editFormData.ingredientsCost),
+                estPrepTime: parseInt(editFormData.estPrepTime, 10),
+                imageUrl,
+            };
+
+            await axios.put(
+                `http://localhost:8080/api/services/${editingService.id}`,
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setShowEditModal(false);
+            setEditImageFile(null);
+            fetchServices();
+        } catch (err) {
+            const msg = err.response?.data?.error?.message || "Failed to update service.";
+            setEditError(msg);
+        } finally {
+            setEditLoading(false);
         }
     };
 
@@ -302,6 +393,12 @@ export default function CookPortfolio() {
                                 <p style={styles.serviceTitle}>{service.title}</p>
                                 <p style={styles.serviceMeta}>₱{service.ingredientsCost} ingredients cost</p>
                                 <p style={styles.serviceMeta}>🍽 Serves {service.servingSize} • ⏱ {service.estPrepTime} mins</p>
+                                <button
+                                    style={{ ...styles.addBtn, width: '100%', marginTop: '8px', fontSize: '13px', padding: '8px' }}
+                                    onClick={() => handleEditClick(service)}
+                                >
+                                    Edit
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -410,6 +507,61 @@ export default function CookPortfolio() {
                             <span style={styles.cancelLink} onClick={handleServiceClose}>Cancel</span>
                             <button style={{ ...styles.submitBtn, opacity: loading ? 0.7 : 1 }} onClick={handleSubmit} disabled={loading}>
                                 {loading ? "Publishing..." : "Publish Service"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showEditModal && editingService && (
+                <div style={styles.overlay} onClick={() => setShowEditModal(false)}>
+                    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+                        <button style={styles.closeBtn} onClick={() => setShowEditModal(false)}>✕</button>
+
+                        <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: 'bold' }}>Edit Service</h2>
+                        <p style={{ color: '#666', marginBottom: '16px' }}>Update your culinary service details</p>
+
+                        {editError && <div style={styles.errorMsg}>{editError}</div>}
+
+                        <label style={styles.label}>Service Title</label>
+                        <input name="title" style={styles.input} onChange={handleEditChange} value={editFormData.title} />
+
+                        <label style={styles.label}>Description</label>
+                        <textarea name="description" style={{ ...styles.input, height: '80px', resize: 'none' }} onChange={handleEditChange} value={editFormData.description} />
+
+                        <label style={styles.label}>Ingredients List</label>
+                        <textarea name="ingredientsList" style={{ ...styles.input, height: '80px', resize: 'none' }} onChange={handleEditChange} value={editFormData.ingredientsList} />
+
+                        <div style={styles.row}>
+                            <div style={{ flex: 1 }}>
+                                <label style={styles.label}>Ingredients Cost (₱)</label>
+                                <input name="ingredientsCost" type="number" min="0" style={styles.input} onChange={handleEditChange} value={editFormData.ingredientsCost} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={styles.label}>Serving Size</label>
+                                <input name="servingSize" type="number" min="1" style={styles.input} onChange={handleEditChange} value={editFormData.servingSize} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={styles.label}>Prep Time (mins)</label>
+                                <input name="estPrepTime" type="number" min="1" style={styles.input} onChange={handleEditChange} value={editFormData.estPrepTime} />
+                            </div>
+                        </div>
+
+                        <label style={styles.label}>Service Image</label>
+                        <div style={styles.uploadBox} onClick={() => document.getElementById('editImageUpload').click()}>
+                            {editImagePreview
+                                ? <img src={editImagePreview} alt="preview" style={styles.preview} />
+                                : <>
+                                    <p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📷 Click to change image</p>
+                                </>
+                            }
+                            <input id="editImageUpload" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleEditImageChange} />
+                        </div>
+
+                        <div style={styles.btnRow}>
+                            <span style={styles.cancelLink} onClick={() => setShowEditModal(false)}>Cancel</span>
+                            <button style={{ ...styles.submitBtn, opacity: editLoading ? 0.7 : 1 }} onClick={handleEditSubmit} disabled={editLoading}>
+                                {editLoading ? "Saving..." : "Save Changes"}
                             </button>
                         </div>
                     </div>
