@@ -32,6 +32,7 @@ import './App.css';
 import PublicLayout from './core/layout/public_layout.jsx';
 import CookLayout from './core/layout/cook_layout.jsx';
 import CustomerLayout from './core/layout/customer_layout.jsx';
+import UserProfile from './profiles/user_profile.jsx';
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
               <Route path="bookings" element={<CustomerBookings />} /> {/* /customer/bookings */}
               <Route path="service-details/:id" element={<ServiceDetails />} /> {/* /customer/service-details */}
               <Route path="service-payment" element={<PaymentPage />} /> {/* /customer/payment */}
+              <Route path="profile" element={<UserProfile />} />
             </Route>
 
             {/* Cook layout wraps all /cook/* pages */}
@@ -77,7 +79,7 @@ function App() {
               <Route index element={<CookHomePage />} />  {/* /cook */}
               <Route path="bookings" element={<CookBookings />} /> {/* /cook/bookings */}
               <Route path="portfolio" element={<CookPortfolio />} /> {/* /cook/portfolio */}
-              {/* <Route path="orders" element={<CookOrders />} /> → /cook/orders */}
+              <Route path="profile" element={<UserProfile />} />
 
             </Route>
             
@@ -90,6 +92,7 @@ function App() {
               <Route index element={<AdminHomePage />} />  {/* /admin */}
               <Route path="users" element={<AdminUsers />} /> {/* /admin/users */}
               <Route path="cook-certificates" element={<AdminCertificates />} /> {/* /admin/cook-certificates */}
+              <Route path="profile" element={<UserProfile />} />
             </Route>
 
             </Routes>
