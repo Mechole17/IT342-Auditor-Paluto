@@ -204,7 +204,7 @@ export default function CookPortfolio() {
                 const imageData = new FormData();
                 imageData.append('file', editImageFile);
                 const uploadRes = await axios.post(
-                    'http://localhost:8080/api/storage/service-upload',
+                    `${API_BASE_URL}/api/storage/service-upload`,
                     imageData,
                     { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
                 );
@@ -220,7 +220,7 @@ export default function CookPortfolio() {
             };
 
             await axios.put(
-                `http://localhost:8080/api/services/${editingService.id}`,
+                `${API_BASE_URL}/api/services/${editingService.id}`,
                 payload,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
