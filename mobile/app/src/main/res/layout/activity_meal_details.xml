@@ -51,7 +51,7 @@
                     android:id="@+id/tvMealTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Family Feast"
+                    tools:text="Family Feast"
                     android:textColor="@color/black"
                     android:textSize="24sp"
                     android:fontFamily="sans-serif-black"
@@ -81,7 +81,7 @@
                         android:id="@+id/tvPrepTimeValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1 hour"
+                        tools:text="1 hour"
                         android:textColor="@color/black"
                         android:textStyle="bold"
                         android:textSize="14sp" />
@@ -109,7 +109,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="A combination of common dishes served in most feast events in the Philippines."
+                tools:text="A combination of common dishes served in most feast events in the Philippines."
                 android:textColor="#333"
                 android:textSize="14sp"
                 android:lineSpacingMultiplier="1.2" />
@@ -128,7 +128,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Protein: 1kg Pork Belly, 500g Chicken Thighs.\nVegetables: 1/4kg Squash..."
+                tools:text="Protein: 1kg Pork Belly, 500g Chicken Thighs.\nVegetables: 1/4kg Squash..."
                 android:textColor="#333"
                 android:textSize="13sp"
                 android:lineSpacingMultiplier="1.2" />
@@ -152,7 +152,7 @@
                     android:id="@+id/tvEstCost"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Php 1, 000"
+                    tools:text="Php 1, 000"
                     android:textColor="@color/black"
                     android:textSize="14sp"
                     android:textStyle="bold" />

@@ -32,7 +32,7 @@
                 android:id="@+id/tvServiceTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Homemade Chicken Adobo"
+                tools:text="Homemade Chicken Adobo"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="🍽 Serves 4"
+                tools:text="🍽 Serves 4"
                 android:textColor="#888"
                 android:textSize="13sp" />
 
@@ -51,7 +51,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="⏱ 35 mins prep time"
+                tools:text="⏱ 35 mins prep time"
                 android:textColor="#888"
                 android:textSize="13sp" />
 
@@ -60,7 +60,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Php 499"
+                tools:text="Php 499"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />

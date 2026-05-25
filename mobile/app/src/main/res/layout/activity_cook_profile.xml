@@ -67,7 +67,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center"
-                                android:text="MA"
+                                tools:text="MA"
                                 android:textColor="@color/white"
                                 android:textSize="22sp"
                                 android:textStyle="bold" />
@@ -78,7 +78,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="16dp"
-                            android:text="Mechole Auditor"
+                            tools:text="Mechole Auditor"
                             android:textColor="@color/black"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -90,7 +90,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="A Cook that registered via the google oauth"
+                        tools:text="A Cook that registered via the google oauth"
                         android:textColor="#555"
                         android:textSize="14sp" />
 
@@ -121,7 +121,7 @@
                                 android:id="@+id/tvHourlyRate"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Php 568"
+                                tools:text="Php 568"
                                 android:textColor="@color/black"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -147,7 +147,7 @@
                                 android:id="@+id/tvExperience"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="14 years"
+                                tools:text="14 years"
                                 android:textColor="@color/black"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -179,7 +179,7 @@
                                     android:id="@+id/tvRating"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="3.5"
+                                    tools:text="3.5"
                                     android:textColor="@color/black"
                                     android:textStyle="bold" />
 
