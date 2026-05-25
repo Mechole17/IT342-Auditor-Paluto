@@ -15,4 +15,19 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    public UpdateProfileDTO updateProfile(String email, UpdateProfileDTO dto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        user.setFirstname(dto.getFirstname());
+        user.setLastname(dto.getLastname());
+        user.setAddress(dto.getAddress());
+
+        userRepository.save(user);
+
+        return dto;
+    }
 }
+
+

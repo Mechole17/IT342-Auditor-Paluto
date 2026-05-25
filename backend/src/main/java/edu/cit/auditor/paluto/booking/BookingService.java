@@ -214,7 +214,9 @@ public class BookingService {
         Double rawRating = ratingRepository.getAverageRatingByCookId(cookId);
 
         // 2. Assign safely: if null, default to 0.0
-        Double avgRating = (rawRating != null) ? rawRating : 0.0;
+        Double avgRating = (rawRating != null)
+                ? Math.round(rawRating * 10.0) / 10.0
+                : 0.0;
 
         // Get actual earnings from Cook entity
         Cook cook = cookRepository.findById(cookId)

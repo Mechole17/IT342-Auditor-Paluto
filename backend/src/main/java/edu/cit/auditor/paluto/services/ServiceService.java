@@ -100,4 +100,41 @@ public class ServiceService {
                 .map(this::mapToDTO)
                 .toList();
     }
+
+    public void updateService(Long serviceId, String email, ServiceCreationDTO request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        Service service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Service not found."));
+
+        // Ownership check
+        if (!service.getCook().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized — this is not your service.");
+        }
+
+        // Validate negative values
+        if (request.getIngredientsCost() != null && request.getIngredientsCost().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Ingredients cost cannot be negative.");
+        }
+        if (request.getEstPrepTime() != null && request.getEstPrepTime() < 0) {
+            throw new RuntimeException("Prep time cannot be negative.");
+        }
+        if (request.getServingSize() != null && request.getServingSize() < 0) {
+            throw new RuntimeException("Serving size cannot be negative.");
+        }
+
+        service.setTitle(request.getTitle());
+        service.setDescription(request.getDescription());
+        service.setIngredientsList(request.getIngredientsList());
+        service.setIngredientsCost(request.getIngredientsCost());
+        service.setEstPrepTime(request.getEstPrepTime());
+        service.setServingSize(request.getServingSize());
+
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            service.setImageUrl(request.getImageUrl());
+        }
+
+        serviceRepository.save(service);
+    }
 }

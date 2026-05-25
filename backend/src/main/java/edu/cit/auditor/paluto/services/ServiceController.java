@@ -64,6 +64,20 @@ public class ServiceController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ServiceCreationDTO>> updateService(
+            @PathVariable Long id,
+            @RequestBody ServiceCreationDTO request,
+            Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            serviceService.updateService(id, email, request);
+            return ResponseUtility.success(request, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("SRV-005", e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @GetMapping("/my-services")
     public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> getMyServices(Authentication authentication) {
         try {
