@@ -1,58 +1,63 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../core/context/AuthContext';
 import { API_BASE_URL } from '../core/api.js';
 
-// MUI Calendar Imports
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
 
-
-    // So if user came back from PayMongo cancel, we restore service from saved state
-    const savedForm = sessionStorage.getItem('paymentFormState');
-    const savedParsed = savedForm ? JSON.parse(savedForm) : null;
-
 export default function PaymentPage() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { token } = useAuth();
 
     const { service: stateService, quantity: stateQuantity } = location.state || {};
     const [service, setService] = useState(stateService || null);
     const [quantity, setQuantity] = useState(stateService ? stateQuantity : 1);
 
     const [selectedDate, setSelectedDate] = useState(null);
-    const [bookedDates, setBookedDates] = useState([]); // Array of YYYY-MM-DD strings
+    const [bookedDates, setBookedDates] = useState([]);
     const [time, setTime] = useState('');
     const [address, setAddress] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('');
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    
-
+    // Fetch user address on mount
     useEffect(() => {
-        // Only restore from sessionStorage if we have no state from navigation
+        const fetchUserAddress = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setAddress(res.data.data.user.address || '');
+            } catch (err) {
+                console.error("Failed to fetch user address", err);
+            }
+        };
+        if (token) fetchUserAddress();
+    }, [token]);
+
+    // Restore from sessionStorage if coming back from PayMongo cancel
+    useEffect(() => {
         if (stateService) return;
 
         const savedForm = sessionStorage.getItem('paymentFormState');
         if (!savedForm) return;
 
         const savedParsed = JSON.parse(savedForm);
-
         setAddress(savedParsed.address);
         setTime(savedParsed.time);
-        setPaymentMethod(savedParsed.paymentMethod);
         setSelectedDate(dayjs(savedParsed.selectedDate));
         setQuantity(savedParsed.quantity);
 
         const fetchService = async () => {
             try {
-                const token = localStorage.getItem('token');
                 const res = await axios.get(`${API_BASE_URL}/api/services/${savedParsed.serviceId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 setService(res.data.data);
             } catch (err) {
@@ -62,58 +67,43 @@ export default function PaymentPage() {
 
         fetchService();
         sessionStorage.removeItem('paymentFormState');
-        sessionStorage.removeItem('pendingBooking');
     }, []);
 
-    // !! FETCH BUSY DATES
+    // Fetch booked dates
     useEffect(() => {
-    // We create a helper function inside the effect
-    const fetchDates = async () => {
+        const fetchDates = async () => {
             try {
-                const token = localStorage.getItem('token');
                 const res = await axios.get(`${API_BASE_URL}/api/bookings/cooks/${service.cookId}/booked-dates`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-
-                // Unwrap the ApiResponse
                 if (res.data && res.data.data) {
                     setBookedDates(res.data.data);
                 }
             } catch (err) {
-                // Handle error (e.g., logging or setting an error state)
                 console.error("Failed to load booked dates", err);
-                setBookedDates([]); 
+                setBookedDates([]);
             }
         };
 
-        if (service?.cookId) {
-            fetchDates();
-        }
+        if (service?.cookId) fetchDates();
     }, [service?.cookId]);
 
-    // !! GREY-OUT LOGIC
     const shouldDisableDate = (date) => {
         const dateString = date.format('YYYY-MM-DD');
         const isPast = date.isBefore(dayjs(), 'day');
         const isBooked = bookedDates.includes(dateString);
-        return isPast || isBooked; // Disable if past or already booked
+        return isPast || isBooked;
     };
 
     const minDate = dayjs().add(1, 'day');
 
-    const Cancel = () => {
-        navigate(`/customer/service-details/${service.id}`);
-    };
-
-    // --- Official Paluto Logic ---
     const ingredientCostPerSet = Number(service?.ingredientsCost) || 0;
     const cookRatePerHour      = Number(service?.cookHourlyRate) || 0;
     const basePrepTime         = Number(service?.estPrepTime) || 0;
     const qty                  = Number(quantity) || 1;
 
-    // Smart Scaling: 1st set = 100% time, each extra set adds 20% more time
-    const totalPrepTimeMinutes = qty > 1 
-        ? basePrepTime + (basePrepTime * 0.20 * (qty - 1)) 
+    const totalPrepTimeMinutes = qty > 1
+        ? basePrepTime + (basePrepTime * 0.20 * (qty - 1))
         : basePrepTime;
 
     const totalIngredients = ingredientCostPerSet * qty;
@@ -121,13 +111,12 @@ export default function PaymentPage() {
     const total            = totalIngredients + laborCost;
 
     const handleSubmit = async (e) => {
-         e.preventDefault();
+        e.preventDefault();
 
         const newErrors = {};
         if (!selectedDate) newErrors.date = 'Date is required';
         if (!time) newErrors.time = 'Time is required';
         if (!address.trim()) newErrors.address = 'Address is required';
-        if (!paymentMethod || paymentMethod === '') newErrors.paymentMethod = 'Please select a payment method';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -138,9 +127,6 @@ export default function PaymentPage() {
         setIsSubmitting(true);
 
         try {
-            const token = localStorage.getItem('token');
-
-            // ADDED: Call PayMongo checkout first, not bookings/create
             const checkoutResponse = await axios.post(`${API_BASE_URL}/api/payment/checkout`, {
                 amount: total,
                 serviceId: service.id,
@@ -149,7 +135,7 @@ export default function PaymentPage() {
                 scheduledDate: selectedDate.format('YYYY-MM-DD'),
                 scheduledTime: time + ":00"
             }, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             const checkoutUrl = checkoutResponse.data.data.data.attributes.checkout_url;
@@ -157,13 +143,11 @@ export default function PaymentPage() {
             sessionStorage.setItem('paymentFormState', JSON.stringify({
                 address,
                 time,
-                paymentMethod,
                 selectedDate: selectedDate.format('YYYY-MM-DD'),
-                serviceId: service.id, // ADDED
-                quantity,              // ADDED
+                serviceId: service.id,
+                quantity,
             }));
 
-            // ADDED: Redirect to PayMongo hosted payment page
             window.location.href = checkoutUrl;
 
         } catch (error) {
@@ -179,7 +163,6 @@ export default function PaymentPage() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div style={styles.wrapper}>
             <h2 style={styles.pageTitle}>Booking</h2>
-
             <div style={styles.content}>
                 {/* Left Column */}
                 <div style={styles.leftCol}>
@@ -211,65 +194,42 @@ export default function PaymentPage() {
                 {/* Right Column */}
                 <div style={styles.rightCol}>
                     <h1 style={styles.mealTitle}>{service.title}</h1>
-
                     <form onSubmit={handleSubmit} style={styles.form}>
-                        {/* Date & Time */}
                         <div style={styles.dateTimeRow}>
                             <div style={styles.fieldGroupHalf}>
                                 <label style={styles.label}>Date</label>
                                 <DatePicker
-                                        value={selectedDate}
-                                        onChange={(val) => setSelectedDate(val)}
-                                        minDate={minDate}
-                                        shouldDisableDate={shouldDisableDate} // !! GREY OUT CALL
-                                        slotProps={{ textField: { size: 'small', sx: styles.muiInput } }}
-                                    />
+                                    value={selectedDate}
+                                    onChange={(val) => setSelectedDate(val)}
+                                    minDate={minDate}
+                                    shouldDisableDate={shouldDisableDate}
+                                    slotProps={{ textField: { size: 'small', sx: styles.muiInput } }}
+                                />
                                 {errors.date && <span style={styles.errorText}>{errors.date}</span>}
                             </div>
                             <div style={styles.fieldGroupHalf}>
                                 <label style={styles.label}>Time</label>
                                 <TimePicker
-                                    value={time ? dayjs(time, 'HH:mm') : null} // Convert string back to dayjs for MUI
+                                    value={time ? dayjs(time, 'HH:mm') : null}
                                     onChange={(newValue) => setTime(newValue ? newValue.format('HH:mm') : '')}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: styles.muiInput // Reuse the same styles as the DatePicker!
-                                        }
-                                    }}
+                                    slotProps={{ textField: { size: 'small', sx: styles.muiInput } }}
                                 />
                                 {errors.time && <span style={styles.errorText}>{errors.time}</span>}
                             </div>
                         </div>
 
-                        {/* Address */}
                         <div style={styles.fieldGroup}>
-                            <label style={styles.label}>Address</label>
+                            <label style={styles.label}>Service Address</label>
                             <input
                                 type="text"
                                 value={address}
                                 onChange={e => setAddress(e.target.value)}
                                 style={styles.input}
+                                placeholder="Your service address"
                             />
                             {errors.address && <span style={styles.errorText}>{errors.address}</span>}
                         </div>
 
-                        {/* Payment Method */}
-                        <div style={styles.fieldGroup}>
-                            <label style={styles.label}>Payment Method</label>
-                            <select
-                                value={paymentMethod}
-                                onChange={e => setPaymentMethod(e.target.value)}
-                                style={styles.input}
-                            >
-                                <option value="">Select payment method</option>
-                                <option value="gcash">GCash</option>
-                                <option value="card">Card</option>
-                            </select>
-                            {errors.paymentMethod && <span style={styles.errorText}>{errors.paymentMethod}</span>}
-                        </div>
-
-                        {/* Total */}
                         <div style={styles.totalRow}>
                             <span style={styles.totalLabel}>Total</span>
                             <span style={styles.totalAmount}>
@@ -277,17 +237,16 @@ export default function PaymentPage() {
                             </span>
                         </div>
 
-                        {/* Buttons */}
                         <div style={styles.payRow}>
-                            <button 
-                                type="button" 
-                                style={styles.cancelBtn} 
-                                onClick={Cancel}
+                            <button
+                                type="button"
+                                style={styles.cancelBtn}
+                                onClick={() => navigate(`/customer/service-details/${service.id}`)}
                             >
                                 Cancel
                             </button>
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 style={{
                                     ...styles.payBtn,
                                     opacity: isSubmitting ? 0.7 : 1,
@@ -296,14 +255,11 @@ export default function PaymentPage() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: '8px',
-                                }} 
+                                }}
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? (
-                                    <>
-                                        <span style={styles.spinner} />
-                                        Processing...
-                                    </>
+                                    <><span style={styles.spinner} />Processing...</>
                                 ) : 'Pay now'}
                             </button>
                         </div>
@@ -316,179 +272,30 @@ export default function PaymentPage() {
 }
 
 const styles = {
-    spinner: {
-        width: '16px',
-        height: '16px',
-        border: '2px solid rgba(255,255,255,0.4)',
-        borderTop: '2px solid #fff',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-    },
-    muiInput: {
-        '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-            height: '42px',
-            backgroundColor: 'white',
-            fontSize: '14px'
-        },
-        // !! THIS PART MAKES THE CALENDAR POPUP VISIBLY GREY OUT DISABLED DATES
-        '& .MuiPickersDay-root.Mui-disabled': {
-            color: '#ccc !important',
-            backgroundColor: '#f5f5f5 !important',
-            textDecoration: 'line-through'
-        }
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-    },
-    inputError: {
-        borderColor: 'red',
-    },
-    errorText: {
-        fontSize: '12px',
-        color: 'red',
-        marginTop: '2px',
-    },
-    wrapper: {
-        padding: '32px 40px',
-        height: '100%',
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-    },
-    pageTitle: {
-        fontSize: '22px',
-        fontWeight: '800',
-        margin: '0 0 24px',
-        flexShrink: 0,
-    },
-    content: {
-        display: 'flex',
-        gap: '48px',
-        flex: 1,
-        overflow: 'hidden',
-    },
-    leftCol: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-    },
-    image: {
-        width: '100%',
-        flex: 1,
-        objectFit: 'cover',
-        borderRadius: '12px',
-        minHeight: 0,
-    },
-    summaryBox: {
-        marginTop: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-    },
-    summaryRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-    },
-    summaryLabel: {
-        fontSize: '14px',
-        color: '#444',
-    },
-    summaryValue: {
-        fontSize: '14px',
-        fontWeight: '600',
-    },
-    rightCol: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    mealTitle: {
-        fontSize: '36px',
-        fontWeight: '900',
-        margin: '0 0 24px',
-    },
-    dateTimeRow: {
-        display: 'flex',
-        gap: '16px',
-        marginBottom: '16px',
-    },
-    fieldGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        marginBottom: '16px',
-    },
-    fieldGroupHalf: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        flex: 1,
-    },
-    label: {
-        fontSize: '13px',
-        color: '#555',
-        fontWeight: '500',
-    },
-    input: {
-        border: '1.5px solid #ccc',
-        borderRadius: '8px',
-        padding: '10px 14px',
-        fontSize: '14px',
-        outline: 'none',
-        width: '100%',
-        boxSizing: 'border-box',
-        height: '42px',
-        fontFamily: 'inherit',
-    },
-    totalRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderTop: '1.5px solid #eee',
-        paddingTop: '16px',
-        marginTop: 'auto',
-    },
-    totalLabel: {
-        fontSize: '16px',
-        color: '#888',
-        fontWeight: '500',
-    },
-    totalAmount: {
-        fontSize: '28px',
-        fontWeight: '800',
-    },
-    payRow: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        gap: '12px',
-        marginTop: '16px',
-    },
-    cancelBtn: {
-        backgroundColor: 'transparent',
-        color: '#333',
-        border: '1.5px solid #ccc',
-        borderRadius: '12px',
-        padding: '12px 48px',
-        fontSize: '16px',
-        fontWeight: '700',
-        cursor: 'pointer',
-    },
-    payBtn: {
-        backgroundColor: '#F5A623',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '12px',
-        padding: '12px 48px',
-        fontSize: '16px',
-        fontWeight: '700',
-        cursor: 'pointer',
-    },
-    
+    spinner: { width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
+    muiInput: { '& .MuiOutlinedInput-root': { borderRadius: '8px', height: '42px', backgroundColor: 'white', fontSize: '14px' }, '& .MuiPickersDay-root.Mui-disabled': { color: '#ccc !important', backgroundColor: '#f5f5f5 !important', textDecoration: 'line-through' } },
+    form: { display: 'flex', flexDirection: 'column', flex: 1 },
+    errorText: { fontSize: '12px', color: 'red', marginTop: '2px' },
+    wrapper: { padding: '32px 40px', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+    pageTitle: { fontSize: '22px', fontWeight: '800', margin: '0 0 24px', flexShrink: 0 },
+    content: { display: 'flex', gap: '48px', flex: 1, overflow: 'hidden' },
+    leftCol: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+    image: { width: '100%', flex: 1, objectFit: 'cover', borderRadius: '12px', minHeight: 0 },
+    summaryBox: { marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' },
+    summaryRow: { display: 'flex', justifyContent: 'space-between' },
+    summaryLabel: { fontSize: '14px', color: '#444' },
+    summaryValue: { fontSize: '14px', fontWeight: '600' },
+    rightCol: { flex: 1, display: 'flex', flexDirection: 'column' },
+    mealTitle: { fontSize: '36px', fontWeight: '900', margin: '0 0 24px' },
+    dateTimeRow: { display: 'flex', gap: '16px', marginBottom: '16px' },
+    fieldGroup: { display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' },
+    fieldGroupHalf: { display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 },
+    label: { fontSize: '13px', color: '#555', fontWeight: '500' },
+    input: { border: '1.5px solid #ccc', borderRadius: '8px', padding: '10px 14px', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', height: '42px', fontFamily: 'inherit' },
+    totalRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid #eee', paddingTop: '16px', marginTop: 'auto' },
+    totalLabel: { fontSize: '16px', color: '#888', fontWeight: '500' },
+    totalAmount: { fontSize: '28px', fontWeight: '800' },
+    payRow: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' },
+    cancelBtn: { backgroundColor: 'transparent', color: '#333', border: '1.5px solid #ccc', borderRadius: '12px', padding: '12px 48px', fontSize: '16px', fontWeight: '700', cursor: 'pointer' },
+    payBtn: { backgroundColor: '#F5A623', color: '#fff', border: 'none', borderRadius: '12px', padding: '12px 48px', fontSize: '16px', fontWeight: '700', cursor: 'pointer' },
 };
-
