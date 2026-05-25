@@ -49,6 +49,7 @@ class CustomerBookingsFragment : Fragment() {
     private fun setupRecyclerView() {
         bookingAdapter = BookingAdapter(
             emptyList(),
+            userRole = "CUSTOMER",
             onDetailsClick = { booking -> showBookingDetails(booking) },
             onCancelClick = { booking -> handleCancelBooking(booking) },
             onRateClick = { booking -> showRatingDialog(booking) }
