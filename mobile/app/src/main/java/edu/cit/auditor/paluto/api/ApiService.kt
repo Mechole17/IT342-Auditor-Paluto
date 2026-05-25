@@ -83,6 +83,23 @@ interface ApiService {
         @Body request: CheckoutRequest
     ): Response<ApiResponse<Map<String, Any>>>
 
+    @GET("api/bookings/cook/{id}")
+    suspend fun getCookBookings(
+        @Path("id") id: Long
+    ): Response<ApiResponse<List<BookingResponse>>>
+
+    @PUT("api/bookings/{id}/status")
+    suspend fun updateBookingStatus(
+        @Path("id") id: Long,
+        @Query("status") status: String,
+        @Query("action") action: String
+    ): Response<ApiResponse<String>>
+
+    @GET("api/bookings/cook/{id}/stats")
+    suspend fun getCookStats(
+        @Path("id") id: Long
+    ): Response<ApiResponse<Map<String, Any>>>
+
     @GET("api/bookings/cooks/{cookId}/booked-dates")
     suspend fun getBookedDates(
         @Path("cookId") cookId: Long
