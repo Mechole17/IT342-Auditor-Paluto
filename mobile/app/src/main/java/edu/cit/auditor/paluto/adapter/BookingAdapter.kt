@@ -12,6 +12,7 @@ import edu.cit.auditor.paluto.dto.BookingResponse
 class BookingAdapter(
     private var bookings: List<BookingResponse>,
     private val userRole: String,
+    private val isDashboard: Boolean = false,
     private val onDetailsClick: (BookingResponse) -> Unit,
     private val onCancelClick: (BookingResponse) -> Unit,
     private val onRateClick: (BookingResponse) -> Unit,
@@ -85,11 +86,11 @@ class BookingAdapter(
             val isPaidPending = booking.status.uppercase() == "PAID_PENDING"
             val isAccepted = booking.status.uppercase() == "ACCEPTED"
             
-            btnAccept.visibility = if (userRole == "COOK" && isPaidPending) View.VISIBLE else View.GONE
-            btnReject.visibility = if (userRole == "COOK" && isPaidPending) View.VISIBLE else View.GONE
+            btnAccept.visibility = if (userRole == "COOK" && isPaidPending && !isDashboard) View.VISIBLE else View.GONE
+            btnReject.visibility = if (userRole == "COOK" && isPaidPending && !isDashboard) View.VISIBLE else View.GONE
             
             val scheduleMet = isScheduleMet(booking.scheduledDate, booking.scheduledTime)
-            btnComplete.visibility = if (userRole == "COOK" && isAccepted) View.VISIBLE else View.GONE
+            btnComplete.visibility = if (userRole == "COOK" && isAccepted && !isDashboard) View.VISIBLE else View.GONE
             btnComplete.isEnabled = scheduleMet
             btnComplete.alpha = if (scheduleMet) 1.0f else 0.5f
             btnComplete.text = if (scheduleMet) "Mark as Completed" else "Locked (Time not met)"

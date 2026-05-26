@@ -31,6 +31,9 @@ interface ApiService {
     @GET("api/cook/all")
     suspend fun getAllCooks(): Response<ApiResponse<List<CookResponse>>>
 
+    @GET("api/services/all")
+    suspend fun getAllServices(): Response<ApiResponse<List<ServiceResponse>>>
+
     @GET("api/cook/{id}")
     suspend fun getCookById(
         @Path("id") id: Long
