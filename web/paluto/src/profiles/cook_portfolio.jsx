@@ -4,7 +4,8 @@ import { useAuth } from '../core/context/AuthContext';
 import { API_BASE_URL } from '../core/api.js';
 
 export default function CookPortfolio() {
-    const { token } = useAuth();
+    const { user, token } = useAuth();
+    const [activeTab, setActiveTab] = useState('Services');
     const [showServiceModal, setShowServiceModal] = useState(false);
     const [showCertModal, setShowCertModal] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ export default function CookPortfolio() {
     const [certTitle, setCertTitle] = useState('');
     const [services, setServices] = useState([]);
     const [certificates, setCertificates] = useState([]);
-    //edit service
+    const [reviews, setReviews] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingService, setEditingService] = useState(null);
     const [editImageFile, setEditImageFile] = useState(null);
@@ -26,56 +27,46 @@ export default function CookPortfolio() {
     const [editError, setEditError] = useState(null);
 
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        servingSize: '',
-        ingredientsList: '',
-        ingredientsCost: '',
-        estPrepTime: '',
+        title: '', description: '', servingSize: '',
+        ingredientsList: '', ingredientsCost: '', estPrepTime: '',
     });
 
     const [editFormData, setEditFormData] = useState({
-        title: '',
-        description: '',
-        servingSize: '',
-        ingredientsList: '',
-        ingredientsCost: '',
-        estPrepTime: '',
+        title: '', description: '', servingSize: '',
+        ingredientsList: '', ingredientsCost: '', estPrepTime: '',
     });
 
     const fetchServices = async () => {
         try {
-            const res = await axios.get(
-                `${API_BASE_URL}/api/services/my-services`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const res = await axios.get(`${API_BASE_URL}/api/services/my-services`, { headers: { Authorization: `Bearer ${token}` } });
             setServices(res.data.data || []);
-        } catch (err) {
-            console.error("Failed to fetch services", err);
-        }
+        } catch (err) { console.error("Failed to fetch services", err); }
     };
 
     const fetchCertificates = async () => {
         try {
-            const res = await axios.get(
-                `${API_BASE_URL}/api/certificates/my-certificates`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const res = await axios.get(`${API_BASE_URL}/api/certificates/my-certificates`, { headers: { Authorization: `Bearer ${token}` } });
             setCertificates(res.data.data || []);
-        } catch (err) {
-            console.error("Failed to fetch certificates", err);
-        }
+        } catch (err) { console.error("Failed to fetch certificates", err); }
+    };
+
+    const fetchReviews = async () => {
+        if (!user?.id) return;
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/ratings/cook/${user.id}`, { headers: { Authorization: `Bearer ${token}` } });
+            setReviews(res.data.data || []);
+        } catch (err) { console.error("Failed to fetch reviews", err); }
     };
 
     useEffect(() => {
         fetchServices();
         fetchCertificates();
+        fetchReviews();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [user]);
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleEditChange = (e) => setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -90,96 +81,6 @@ export default function CookPortfolio() {
         setCertFile(file);
     };
 
-    const resetForm = () => {
-        setFormData({ title: '', description: '', servingSize: '', ingredientsList: '', ingredientsCost: '', estPrepTime: '' });
-        setImageFile(null);
-        setImagePreview(null);
-        setError(null);
-    };
-
-    const resetCertForm = () => {
-        setCertFile(null);
-        setCertTitle('');
-        setCertError(null);
-    };
-
-    const handleServiceClose = () => {
-        resetForm();
-        setShowServiceModal(false);
-    };
-
-    const handleCertClose = () => {
-        resetCertForm();
-        setShowCertModal(false);
-    };
-
-    const handleSubmit = async () => {
-        if (!formData.title || !formData.description || !formData.servingSize ||
-            !formData.ingredientsList || !formData.ingredientsCost || !formData.estPrepTime) {
-            setError("Please fill in all required fields.");
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        try {
-            let imageUrl = '';
-            if (imageFile) {
-                const imageData = new FormData();
-                imageData.append('file', imageFile);
-
-                const uploadRes = await axios.post(
-                    `${API_BASE_URL}/api/storage/service-upload`,
-                    imageData,
-                    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
-                );
-                imageUrl = uploadRes.data.url;
-            }
-
-            const payload = {
-                ...formData,
-                servingSize: parseInt(formData.servingSize, 10),
-                ingredientsCost: parseFloat(formData.ingredientsCost),
-                estPrepTime: parseInt(formData.estPrepTime, 10),
-                imageUrl,
-            };
-
-            await axios.post(
-                `${API_BASE_URL}/api/services/create`,
-                payload,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            handleServiceClose();
-            fetchServices();
-        } catch (err) {
-            const msg = err.response?.data?.error?.message || "Failed to create service.";
-            setError(msg);
-        } finally {
-            setLoading(false);
-        }
-    };
-    //edit handlers
-    const handleEditClick = (service) => {
-        setEditingService(service);
-        setEditFormData({
-            title: service.title,
-            description: service.description,
-            servingSize: service.servingSize,
-            ingredientsList: service.ingredientsList,
-            ingredientsCost: service.ingredientsCost,
-            estPrepTime: service.estPrepTime,
-        });
-        setEditImagePreview(service.imageUrl);
-        setEditError(null);
-        setShowEditModal(true);
-    };
-
-    const handleEditChange = (e) => {
-        setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
-    };
-
     const handleEditImageChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -187,126 +88,91 @@ export default function CookPortfolio() {
         setEditImagePreview(URL.createObjectURL(file));
     };
 
+    const resetForm = () => {
+        setFormData({ title: '', description: '', servingSize: '', ingredientsList: '', ingredientsCost: '', estPrepTime: '' });
+        setImageFile(null); setImagePreview(null); setError(null);
+    };
+
+    const resetCertForm = () => { setCertFile(null); setCertTitle(''); setCertError(null); };
+    const handleServiceClose = () => { resetForm(); setShowServiceModal(false); };
+    const handleCertClose = () => { resetCertForm(); setShowCertModal(false); };
+
+    const handleSubmit = async () => {
+        if (!formData.title || !formData.description || !formData.servingSize ||
+            !formData.ingredientsList || !formData.ingredientsCost || !formData.estPrepTime) {
+            setError("Please fill in all required fields."); return;
+        }
+        setLoading(true); setError(null);
+        try {
+            let imageUrl = '';
+            if (imageFile) {
+                const imageData = new FormData();
+                imageData.append('file', imageFile);
+                const uploadRes = await axios.post(`${API_BASE_URL}/api/storage/service-upload`, imageData, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
+                imageUrl = uploadRes.data.url;
+            }
+            const payload = { ...formData, servingSize: parseInt(formData.servingSize, 10), ingredientsCost: parseFloat(formData.ingredientsCost), estPrepTime: parseInt(formData.estPrepTime, 10), imageUrl };
+            await axios.post(`${API_BASE_URL}/api/services/create`, payload, { headers: { Authorization: `Bearer ${token}` } });
+            handleServiceClose(); fetchServices();
+        } catch (err) {
+            setError(err.response?.data?.error?.message || "Failed to create service.");
+        } finally { setLoading(false); }
+    };
+
+    const handleEditClick = (service) => {
+        setEditingService(service);
+        setEditFormData({ title: service.title, description: service.description, servingSize: service.servingSize, ingredientsList: service.ingredientsList, ingredientsCost: service.ingredientsCost, estPrepTime: service.estPrepTime });
+        setEditImagePreview(service.imageUrl); setEditError(null); setShowEditModal(true);
+    };
+
     const handleEditSubmit = async () => {
         if (!editFormData.title || !editFormData.description || !editFormData.servingSize ||
             !editFormData.ingredientsList || !editFormData.ingredientsCost || !editFormData.estPrepTime) {
-            setEditError("Please fill in all required fields.");
-            return;
+            setEditError("Please fill in all required fields."); return;
         }
-
-        setEditLoading(true);
-        setEditError(null);
-
+        setEditLoading(true); setEditError(null);
         try {
             let imageUrl = editingService.imageUrl;
-
             if (editImageFile) {
                 const imageData = new FormData();
                 imageData.append('file', editImageFile);
-                const uploadRes = await axios.post(
-                    `${API_BASE_URL}/api/storage/service-upload`,
-                    imageData,
-                    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
-                );
+                const uploadRes = await axios.post(`${API_BASE_URL}/api/storage/service-upload`, imageData, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
                 imageUrl = uploadRes.data.url;
             }
-
-            const payload = {
-                ...editFormData,
-                servingSize: parseInt(editFormData.servingSize, 10),
-                ingredientsCost: parseFloat(editFormData.ingredientsCost),
-                estPrepTime: parseInt(editFormData.estPrepTime, 10),
-                imageUrl,
-            };
-
-            await axios.put(
-                `${API_BASE_URL}/api/services/${editingService.id}`,
-                payload,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setShowEditModal(false);
-            setEditImageFile(null);
-            fetchServices();
+            const payload = { ...editFormData, servingSize: parseInt(editFormData.servingSize, 10), ingredientsCost: parseFloat(editFormData.ingredientsCost), estPrepTime: parseInt(editFormData.estPrepTime, 10), imageUrl };
+            await axios.put(`${API_BASE_URL}/api/services/${editingService.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+            setShowEditModal(false); setEditImageFile(null); fetchServices();
         } catch (err) {
-            const msg = err.response?.data?.error?.message || "Failed to update service.";
-            setEditError(msg);
-        } finally {
-            setEditLoading(false);
-        }
+            setEditError(err.response?.data?.error?.message || "Failed to update service.");
+        } finally { setEditLoading(false); }
     };
 
     const handleCertSubmit = async () => {
-        if (!certTitle || !certFile) {
-            setCertError("Please provide a title and upload a file.");
-            return;
-        }
-
-        setCertLoading(true);
-        setCertError(null);
-
+        if (!certTitle || !certFile) { setCertError("Please provide a title and upload a file."); return; }
+        setCertLoading(true); setCertError(null);
         try {
-            // 1. Upload file to Supabase
             const fileData = new FormData();
             fileData.append('file', certFile);
-
-            const uploadRes = await axios.post(
-                `${API_BASE_URL}/api/storage/certificate-upload`,
-                fileData,
-                { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
-            );
-            const fileUrl = uploadRes.data.url;
-
-            // 2. Save certificate
-            await axios.post(
-                `${API_BASE_URL}/api/certificates/upload`,
-                { title: certTitle, fileUrl },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            handleCertClose();
-            fetchCertificates();
+            const uploadRes = await axios.post(`${API_BASE_URL}/api/storage/certificate-upload`, fileData, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
+            await axios.post(`${API_BASE_URL}/api/certificates/upload`, { title: certTitle, fileUrl: uploadRes.data.url }, { headers: { Authorization: `Bearer ${token}` } });
+            handleCertClose(); fetchCertificates();
         } catch (err) {
-            const msg = err.response?.data?.error?.message || "Failed to upload certificate.";
-            setCertError(msg);
-        } finally {
-            setCertLoading(false);
-        }
+            setCertError(err.response?.data?.error?.message || "Failed to upload certificate.");
+        } finally { setCertLoading(false); }
     };
 
     const handleDeleteCertificate = async (certId) => {
         if (!window.confirm("Are you sure you want to remove this certificate?")) return;
-
         try {
-            await axios.delete(
-                `${API_BASE_URL}/api/certificates/${certId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await axios.delete(`${API_BASE_URL}/api/certificates/${certId}`, { headers: { Authorization: `Bearer ${token}` } });
             fetchCertificates();
-        } catch (err) {
-            console.error("Failed to delete certificate", err);
-        }
+        } catch (err) { console.error("Failed to delete certificate", err); }
     };
 
     const getStatusBadge = (status) => {
-        const colors = {
-            PENDING: { bg: '#fff3cd', color: '#856404' },
-            APPROVED: { bg: '#d1e7dd', color: '#0a3622' },
-            REJECTED: { bg: '#f8d7da', color: '#58151c' },
-        };
+        const colors = { PENDING: { bg: '#fff3cd', color: '#856404' }, APPROVED: { bg: '#d1e7dd', color: '#0a3622' }, REJECTED: { bg: '#f8d7da', color: '#58151c' } };
         const style = colors[status] || colors.PENDING;
-        return (
-            <span style={{
-                backgroundColor: style.bg,
-                color: style.color,
-                fontSize: '11px',
-                fontWeight: '700',
-                padding: '3px 10px',
-                borderRadius: '20px',
-            }}>
-                {status}
-            </span>
-        );
+        return <span style={{ backgroundColor: style.bg, color: style.color, fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>{status}</span>;
     };
 
     const styles = {
@@ -336,73 +202,104 @@ export default function CookPortfolio() {
         certActions: { display: 'flex', alignItems: 'center', gap: '12px' },
         viewLink: { fontSize: '13px', color: '#0A0A1F', fontWeight: '600', textDecoration: 'underline', cursor: 'pointer' },
         deleteBtn: { background: 'none', border: 'none', color: '#d10b04', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
+        tabContainer: { display: 'flex', gap: '0', marginBottom: '24px', borderBottom: '2px solid #eee' },
+        tab: (isActive) => ({ padding: '12px 28px', cursor: 'pointer', fontWeight: isActive ? '700' : '500', color: isActive ? '#0A0A1F' : '#888', borderBottom: isActive ? '3px solid #0A0A1F' : '3px solid transparent', marginBottom: '-2px', fontSize: '15px' }),
+        reviewCard: { border: '1.5px solid #eee', borderRadius: '12px', padding: '16px 20px', marginBottom: '12px', backgroundColor: '#fdf8f2' },
     };
+
+    const TABS = ['Services', 'Certificates', 'Reviews'];
 
     return (
         <div style={styles.page}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h1 style={{ margin: 0 }}>My Portfolio</h1>
+                {activeTab === 'Services' && <button style={styles.addBtn} onClick={() => setShowServiceModal(true)}>+ Add Service</button>}
+                {activeTab === 'Certificates' && <button style={styles.addBtn} onClick={() => setShowCertModal(true)}>+ Add Certificate</button>}
             </div>
 
-            {/* Certificates Section */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ margin: 0 }}>Certificates</h2>
-                <button style={styles.addBtn} onClick={() => setShowCertModal(true)}>+ Add Certificate</button>
-            </div>
-
-            {certificates.length === 0 ? (
-                <p style={{ color: '#999' }}>No certificates uploaded yet.</p>
-            ) : (
-                certificates.map(cert => (
-                    <div key={cert.id} style={styles.certCard}>
-                        <div style={styles.certInfo}>
-                            <div>
-                                <p style={styles.certTitle}>{cert.title}</p>
-                                {getStatusBadge(cert.status)}
-                                {cert.status === 'REJECTED' && cert.adminNote && (
-                                    <p style={{ fontSize: '12px', color: '#888', margin: '4px 0 0' }}>Note: {cert.adminNote}</p>
-                                )}
-                            </div>
-                        </div>
-                        <div style={styles.certActions}>
-                            <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.viewLink}>View</a>
-                            <button style={styles.deleteBtn} onClick={() => handleDeleteCertificate(cert.id)}>Remove</button>
-                        </div>
+            {/* Tabs */}
+            <div style={styles.tabContainer}>
+                {TABS.map(tab => (
+                    <div key={tab} style={styles.tab(activeTab === tab)} onClick={() => setActiveTab(tab)}>
+                        {tab} {tab === 'Reviews' && `(${reviews.length})`}
                     </div>
-                ))
+                ))}
+            </div>
+
+            {/* Services Tab */}
+            {activeTab === 'Services' && (
+                <>
+                    {services.length === 0 ? (
+                        <p style={{ color: '#999' }}>No services listed yet. Click "+ Add Service" to get started.</p>
+                    ) : (
+                        <div style={styles.serviceGrid}>
+                            {services.map((service) => (
+                                <div key={service.id} style={styles.serviceCard}>
+                                    {service.imageUrl
+                                        ? <img src={service.imageUrl} alt={service.title} style={styles.serviceImg} />
+                                        : <div style={{ ...styles.serviceImg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>No Image</div>
+                                    }
+                                    <div style={styles.serviceBody}>
+                                        <p style={styles.serviceTitle}>{service.title}</p>
+                                        <p style={styles.serviceMeta}>₱{service.ingredientsCost} ingredients cost</p>
+                                        <p style={styles.serviceMeta}>🍽 Serves {service.servingSize} • ⏱ {service.estPrepTime} mins</p>
+                                        <button style={{ ...styles.addBtn, width: '100%', marginTop: '8px', fontSize: '13px', padding: '8px' }} onClick={() => handleEditClick(service)}>
+                                            Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
 
-            {/* Services Section */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '16px' }}>
-                <h2 style={{ margin: 0 }}>Service Offerings</h2>
-                <button style={styles.addBtn} onClick={() => setShowServiceModal(true)}>+ Add Service</button>
-            </div>
-
-            {services.length === 0 ? (
-                <p style={{ color: '#999' }}>No services listed yet. Click "Add Service" to get started.</p>
-            ) : (
-                <div style={styles.serviceGrid}>
-                    {services.map((service) => (
-                        <div key={service.id} style={styles.serviceCard}>
-                            {service.imageUrl
-                                ? <img src={service.imageUrl} alt={service.title} style={styles.serviceImg} />
-                                : <div style={{ ...styles.serviceImg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>No Image</div>
-                            }
-                            <div style={styles.serviceBody}>
-                                <p style={styles.serviceTitle}>{service.title}</p>
-                                <p style={styles.serviceMeta}>₱{service.ingredientsCost} ingredients cost</p>
-                                <p style={styles.serviceMeta}>🍽 Serves {service.servingSize} • ⏱ {service.estPrepTime} mins</p>
-                                <button
-                                    style={{ ...styles.addBtn, width: '100%', marginTop: '8px', fontSize: '13px', padding: '8px' }}
-                                    onClick={() => handleEditClick(service)}
-                                >
-                                    Edit
-                                </button>
+            {/* Certificates Tab */}
+            {activeTab === 'Certificates' && (
+                <>
+                    {certificates.length === 0 ? (
+                        <p style={{ color: '#999' }}>No certificates uploaded yet.</p>
+                    ) : (
+                        certificates.map(cert => (
+                            <div key={cert.id} style={styles.certCard}>
+                                <div style={styles.certInfo}>
+                                    <div>
+                                        <p style={styles.certTitle}>{cert.title}</p>
+                                        {getStatusBadge(cert.status)}
+                                        {cert.status === 'REJECTED' && cert.adminNote && (
+                                            <p style={{ fontSize: '12px', color: '#888', margin: '4px 0 0' }}>Note: {cert.adminNote}</p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div style={styles.certActions}>
+                                    <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.viewLink}>View</a>
+                                    <button style={styles.deleteBtn} onClick={() => handleDeleteCertificate(cert.id)}>Remove</button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))
+                    )}
+                </>
+            )}
+
+            {/* Reviews Tab */}
+            {activeTab === 'Reviews' && (
+                <>
+                    {reviews.length === 0 ? (
+                        <p style={{ color: '#999' }}>No reviews yet.</p>
+                    ) : (
+                        reviews.map(r => (
+                            <div key={r.id} style={styles.reviewCard}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <span style={{ fontWeight: '700', fontSize: '14px' }}>{r.customerName}</span>
+                                    <span style={{ color: '#F5A623', fontSize: '16px' }}>
+                                        {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                                    </span>
+                                </div>
+                                {r.comment && <p style={{ fontSize: '14px', color: '#555', margin: 0 }}>{r.comment}</p>}
+                            </div>
+                        ))
+                    )}
+                </>
             )}
 
             {/* Certificate Upload Modal */}
@@ -410,45 +307,22 @@ export default function CookPortfolio() {
                 <div style={styles.overlay} onClick={handleCertClose}>
                     <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                         <button style={styles.closeBtn} onClick={handleCertClose}>✕</button>
-
                         <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: 'bold' }}>Upload Certificate</h2>
                         <p style={{ color: '#666', marginBottom: '16px' }}>Upload your culinary certificates for admin verification</p>
-
                         {certError && <div style={styles.errorMsg}>{certError}</div>}
-
                         <label style={styles.label}>Certificate Title</label>
-                        <input
-                            placeholder="e.g. Culinary Arts Diploma"
-                            style={styles.input}
-                            value={certTitle}
-                            onChange={(e) => setCertTitle(e.target.value)}
-                        />
-
+                        <input placeholder="e.g. Culinary Arts Diploma" style={styles.input} value={certTitle} onChange={(e) => setCertTitle(e.target.value)} />
                         <label style={styles.label}>Certificate File (PDF or Image)</label>
                         <div style={styles.uploadBox} onClick={() => document.getElementById('certUpload').click()}>
                             {certFile
                                 ? <p style={{ margin: 0, color: '#0A0A1F', fontSize: '14px', fontWeight: '600' }}>📄 {certFile.name}</p>
-                                : <>
-                                    <p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📎 Click to upload a file</p>
-                                    <p style={{ margin: '4px 0 0', color: '#bbb', fontSize: '12px' }}>PDF, JPG, PNG up to 10MB</p>
-                                  </>
+                                : <><p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📎 Click to upload a file</p><p style={{ margin: '4px 0 0', color: '#bbb', fontSize: '12px' }}>PDF, JPG, PNG up to 10MB</p></>
                             }
-                            <input
-                                id="certUpload"
-                                type="file"
-                                accept=".pdf,image/*"
-                                style={{ display: 'none' }}
-                                onChange={handleCertFileChange}
-                            />
+                            <input id="certUpload" type="file" accept=".pdf,image/*" style={{ display: 'none' }} onChange={handleCertFileChange} />
                         </div>
-
                         <div style={styles.btnRow}>
                             <span style={styles.cancelLink} onClick={handleCertClose}>Cancel</span>
-                            <button
-                                style={{ ...styles.submitBtn, opacity: certLoading ? 0.7 : 1 }}
-                                onClick={handleCertSubmit}
-                                disabled={certLoading}
-                            >
+                            <button style={{ ...styles.submitBtn, opacity: certLoading ? 0.7 : 1 }} onClick={handleCertSubmit} disabled={certLoading}>
                                 {certLoading ? "Uploading..." : "Submit for Review"}
                             </button>
                         </div>
@@ -461,21 +335,15 @@ export default function CookPortfolio() {
                 <div style={styles.overlay} onClick={handleServiceClose}>
                     <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                         <button style={styles.closeBtn} onClick={handleServiceClose}>✕</button>
-
                         <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: 'bold' }}>Create a Service</h2>
                         <p style={{ color: '#666', marginBottom: '16px' }}>Fill in the details of your culinary service</p>
-
                         {error && <div style={styles.errorMsg}>{error}</div>}
-
                         <label style={styles.label}>Service Title</label>
                         <input name="title" placeholder="e.g. Homemade Chicken Adobo" style={styles.input} onChange={handleChange} value={formData.title} />
-
                         <label style={styles.label}>Description</label>
                         <textarea name="description" placeholder="Describe your service..." style={{ ...styles.input, height: '80px', resize: 'none' }} onChange={handleChange} value={formData.description} />
-
                         <label style={styles.label}>Ingredients List</label>
                         <textarea name="ingredientsList" placeholder="e.g. Chicken, soy sauce, vinegar, garlic..." style={{ ...styles.input, height: '80px', resize: 'none' }} onChange={handleChange} value={formData.ingredientsList} />
-
                         <div style={styles.row}>
                             <div style={{ flex: 1 }}>
                                 <label style={styles.label}>Ingredients Cost (₱)</label>
@@ -490,19 +358,14 @@ export default function CookPortfolio() {
                                 <input name="estPrepTime" type="number" min="1" placeholder="e.g. 45" style={styles.input} onChange={handleChange} value={formData.estPrepTime} />
                             </div>
                         </div>
-
                         <label style={styles.label}>Service Image (optional)</label>
                         <div style={styles.uploadBox} onClick={() => document.getElementById('imageUpload').click()}>
                             {imagePreview
                                 ? <img src={imagePreview} alt="preview" style={styles.preview} />
-                                : <>
-                                    <p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📷 Click to upload an image</p>
-                                    <p style={{ margin: '4px 0 0', color: '#bbb', fontSize: '12px' }}>JPG, PNG up to 10MB</p>
-                                  </>
+                                : <><p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📷 Click to upload an image</p><p style={{ margin: '4px 0 0', color: '#bbb', fontSize: '12px' }}>JPG, PNG up to 10MB</p></>
                             }
                             <input id="imageUpload" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageChange} />
                         </div>
-
                         <div style={styles.btnRow}>
                             <span style={styles.cancelLink} onClick={handleServiceClose}>Cancel</span>
                             <button style={{ ...styles.submitBtn, opacity: loading ? 0.7 : 1 }} onClick={handleSubmit} disabled={loading}>
@@ -513,25 +376,20 @@ export default function CookPortfolio() {
                 </div>
             )}
 
+            {/* Edit Service Modal */}
             {showEditModal && editingService && (
                 <div style={styles.overlay} onClick={() => setShowEditModal(false)}>
                     <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                         <button style={styles.closeBtn} onClick={() => setShowEditModal(false)}>✕</button>
-
                         <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: 'bold' }}>Edit Service</h2>
                         <p style={{ color: '#666', marginBottom: '16px' }}>Update your culinary service details</p>
-
                         {editError && <div style={styles.errorMsg}>{editError}</div>}
-
                         <label style={styles.label}>Service Title</label>
                         <input name="title" style={styles.input} onChange={handleEditChange} value={editFormData.title} />
-
                         <label style={styles.label}>Description</label>
                         <textarea name="description" style={{ ...styles.input, height: '80px', resize: 'none' }} onChange={handleEditChange} value={editFormData.description} />
-
                         <label style={styles.label}>Ingredients List</label>
                         <textarea name="ingredientsList" style={{ ...styles.input, height: '80px', resize: 'none' }} onChange={handleEditChange} value={editFormData.ingredientsList} />
-
                         <div style={styles.row}>
                             <div style={{ flex: 1 }}>
                                 <label style={styles.label}>Ingredients Cost (₱)</label>
@@ -546,18 +404,14 @@ export default function CookPortfolio() {
                                 <input name="estPrepTime" type="number" min="1" style={styles.input} onChange={handleEditChange} value={editFormData.estPrepTime} />
                             </div>
                         </div>
-
                         <label style={styles.label}>Service Image</label>
                         <div style={styles.uploadBox} onClick={() => document.getElementById('editImageUpload').click()}>
                             {editImagePreview
                                 ? <img src={editImagePreview} alt="preview" style={styles.preview} />
-                                : <>
-                                    <p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📷 Click to change image</p>
-                                </>
+                                : <p style={{ margin: 0, color: '#999', fontSize: '14px' }}>📷 Click to change image</p>
                             }
                             <input id="editImageUpload" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleEditImageChange} />
                         </div>
-
                         <div style={styles.btnRow}>
                             <span style={styles.cancelLink} onClick={() => setShowEditModal(false)}>Cancel</span>
                             <button style={{ ...styles.submitBtn, opacity: editLoading ? 0.7 : 1 }} onClick={handleEditSubmit} disabled={editLoading}>
