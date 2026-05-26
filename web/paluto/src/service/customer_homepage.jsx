@@ -42,13 +42,12 @@ export default function CustomerHomePage() {
                 <div style={styles.heroContent}>
                     <p style={styles.heroSubtitle}>Welcome</p>
                     <h1 style={styles.heroTitle}>Your Private Chef,<br />Just a Tap Away.</h1>
-                    <button style={styles.heroBtn}>Book a Chef →</button>
                 </div>
             </div>
 
             {/* Popular Offerings */}
             <div style={styles.offerings}>
-                <h1 style={styles.offeringsTitle}>Popular Offerings</h1>
+                <h1 style={styles.offeringsTitle}>Meal Services</h1>
                 <div style={styles.menuGrid}>
                     {menuItems.map((item) => (
                         <div
@@ -75,10 +74,6 @@ export default function CustomerHomePage() {
                 </div>
                 
                 {menuItems.length === 0 && <p>No offerings available at the moment.</p>}
-
-                <div style={styles.seeMoreWrapper}>
-                    <button style={styles.seeMoreBtn}>See More →</button>
-                </div>
             </div>
         </div>
     );
