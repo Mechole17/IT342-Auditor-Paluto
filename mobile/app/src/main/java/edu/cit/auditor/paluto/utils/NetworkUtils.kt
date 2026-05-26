@@ -10,14 +10,15 @@ object NetworkUtils {
      * Can be used by any Activity or Fragment making API calls.
      */
     fun parseError(response: Response<*>): String {
+        val rawError = response.errorBody()?.string() ?: "Unknown error"
         return try {
-            val errorJson = response.errorBody()?.string()
             val gson = Gson()
-            // We use the standard ApiResponse DTO we created in Step 1
-            val errorResponse = gson.fromJson(errorJson, ApiResponse::class.java)
-            errorResponse?.error?.message ?: "An unknown error occurred"
+            val errorResponse = gson.fromJson(rawError, ApiResponse::class.java)
+            errorResponse?.error?.message ?: "Error code: ${response.code()}"
         } catch (e: Exception) {
-            "Server connection error"
+            // If it's not JSON (e.g. HTML error page), return the HTTP status and a snippet of the error
+            val snippet = if (rawError.length > 50) rawError.take(50) + "..." else rawError
+            "HTTP ${response.code()}: $snippet"
         }
     }
 }

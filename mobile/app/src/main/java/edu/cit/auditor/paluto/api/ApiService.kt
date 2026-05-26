@@ -112,4 +112,51 @@ interface ApiService {
     suspend fun getBookedDates(
         @Path("cookId") cookId: Long
     ): Response<ApiResponse<List<String>>>
+
+    // Service Management
+    @GET("api/services/my-services")
+    suspend fun getMyServices(): Response<ApiResponse<List<ServiceResponse>>>
+
+    @POST("api/services/create")
+    suspend fun createService(
+        @Body request: ServiceRequest
+    ): Response<ApiResponse<ServiceResponse>>
+
+    @PUT("api/services/{id}")
+    suspend fun updateService(
+        @Path("id") id: Long,
+        @Body request: ServiceRequest
+    ): Response<ApiResponse<ServiceResponse>>
+
+    @DELETE("api/services/{id}")
+    suspend fun deleteService(
+        @Path("id") id: Long
+    ): Response<ApiResponse<Unit>>
+
+    // Certificate Management
+    @GET("api/certificates/my-certificates")
+    suspend fun getMyCertificates(): Response<ApiResponse<List<CertificateResponse>>>
+
+    @POST("api/certificates/upload")
+    suspend fun uploadCertificate(
+        @Body request: Map<String, String>
+    ): Response<ApiResponse<CertificateResponse>>
+
+    @DELETE("api/certificates/{id}")
+    suspend fun deleteCertificate(
+        @Path("id") id: Long
+    ): Response<ApiResponse<Unit>>
+
+    // Storage
+    @Multipart
+    @POST("api/storage/service-upload")
+    suspend fun uploadServiceImage(
+        @Part file: okhttp3.MultipartBody.Part
+    ): Response<StorageResponse>
+
+    @Multipart
+    @POST("api/storage/certificate-upload")
+    suspend fun uploadCertificateFile(
+        @Part file: okhttp3.MultipartBody.Part
+    ): Response<StorageResponse>
 }
