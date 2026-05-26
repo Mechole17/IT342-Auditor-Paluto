@@ -81,14 +81,14 @@ class CookRegistrationStep2Fragment : Fragment() {
                     if (loginData != null) {
                         // 2. Save Session to SharedPreferences
                         val sharedPref = requireActivity().getSharedPreferences("PalutoPrefs", android.content.Context.MODE_PRIVATE)
-                        with(sharedPref.edit()) {
+                        sharedPref.edit().apply {
                             putString("JWT_TOKEN", loginData.accessToken)
                             putString("USER_ROLE", "COOK")
-                            putString("USER_NAME", loginData.user.firstname)
+                            putString("USER_NAME", loginData.user?.firstname)
                             apply()
                         }
 
-                        Toast.makeText(requireContext(), "Welcome Chef ${loginData.user.firstname}!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext(), "Welcome Chef ${loginData.user?.firstname}!", Toast.LENGTH_LONG).show()
 
                         // 3. Redirect to Cook Dashboard
                         val intent = Intent(requireContext(), CookLandingActivity::class.java)
@@ -119,6 +119,7 @@ class CookRegistrationStep2Fragment : Fragment() {
                     }
                 }
             } catch (e: Exception) {
+                android.util.Log.e("Registration", "Error", e)
                 Toast.makeText(requireContext(), "Network Error", Toast.LENGTH_SHORT).show()
                 binding.btnFinish.isEnabled = true
                 binding.btnFinish.alpha = 1.0f

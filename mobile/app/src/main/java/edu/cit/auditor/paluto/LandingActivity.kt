@@ -13,9 +13,6 @@ class LandingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLandingBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Handle the splash screen transition
-        installSplashScreen()
-
         super.onCreate(savedInstanceState)
 
         // 1. Check for existing session

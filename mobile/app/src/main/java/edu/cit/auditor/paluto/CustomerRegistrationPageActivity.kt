@@ -91,15 +91,15 @@ class CustomerRegistrationPageActivity : AppCompatActivity() {
                     if (loginData != null) {
                         // 2. Save Session to SharedPreferences (Requirement 7.2)
                         val sharedPref = getSharedPreferences("PalutoPrefs", Context.MODE_PRIVATE)
-                        with(sharedPref.edit()) {
+                        sharedPref.edit().apply {
                             putString("JWT_TOKEN", loginData.accessToken)
                             putString("USER_ROLE", "CUSTOMER") // We know they are a customer here
-                            putString("USER_NAME", loginData.user.firstname)
+                            putString("USER_NAME", loginData.user?.firstname)
                             apply()
                         }
 
                         // 3. Direct Redirect to Customer Dashboard
-                        Toast.makeText(this@CustomerRegistrationPageActivity, "Welcome to Paluto, ${loginData.user.firstname}!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@CustomerRegistrationPageActivity, "Welcome to Paluto, ${loginData.user?.firstname}!", Toast.LENGTH_LONG).show()
 
                         val intent = Intent(this@CustomerRegistrationPageActivity, CustomerLandingActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
