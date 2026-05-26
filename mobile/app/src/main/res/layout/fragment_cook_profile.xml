@@ -25,6 +25,15 @@
         android:textSize="18sp" />
 
     <Button
+        android:id="@+id/btnViewProfile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Account Details"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#020D23"
+        android:textAllCaps="false" />
+
+    <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

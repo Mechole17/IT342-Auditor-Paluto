@@ -10,6 +10,14 @@ interface ApiService {
         @Body request: LoginRequest
     ): Response<ApiResponse<LoginResponse>>
 
+    @GET("api/auth/me")
+    suspend fun getCurrentUser(): Response<ApiResponse<LoginResponse>>
+
+    @PUT("api/users/profile")
+    suspend fun updateProfile(
+        @Body request: UpdateProfileRequest
+    ): Response<ApiResponse<UpdateProfileRequest>>
+
     @POST("api/customer/register")
     suspend fun registerCustomer(
         @Body request: CustomerRegistrationRequest

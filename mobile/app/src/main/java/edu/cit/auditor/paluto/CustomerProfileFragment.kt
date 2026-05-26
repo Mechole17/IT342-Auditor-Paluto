@@ -29,6 +29,10 @@ class CustomerProfileFragment : Fragment() {
         val userName = sharedPref.getString("USER_NAME", "User")
         binding.tvUserName.text = userName
 
+        binding.btnViewProfile.setOnClickListener {
+            startActivity(Intent(requireContext(), UserProfileActivity::class.java))
+        }
+
         binding.btnLogout.setOnClickListener {
             val logoutModal = LogoutDialogFragment()
             logoutModal.show(parentFragmentManager, "logout_confirmation")
