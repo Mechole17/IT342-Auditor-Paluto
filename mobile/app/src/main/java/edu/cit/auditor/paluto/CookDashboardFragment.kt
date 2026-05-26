@@ -47,6 +47,7 @@ class CookDashboardFragment : Fragment() {
         bookingAdapter = BookingAdapter(
             emptyList(),
             userRole = "COOK",
+            isDashboard = true,
             onDetailsClick = { booking -> showBookingDetails(booking) },
             onCancelClick = {}, // Cooks manage via Bookings tab
             onRateClick = {}
