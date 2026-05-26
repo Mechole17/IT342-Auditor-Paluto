@@ -1,6 +1,7 @@
 package edu.cit.auditor.paluto.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -12,32 +13,35 @@ import edu.cit.auditor.paluto.dto.CertificateResponse
 import edu.cit.auditor.paluto.dto.RatingResponse
 import edu.cit.auditor.paluto.dto.ServiceResponse
 
-sealed class CookProfileItem {
-    data class Service(val data: ServiceResponse) : CookProfileItem()
-    data class Review(val data: RatingResponse) : CookProfileItem()
-    data class Certificate(val data: CertificateResponse) : CookProfileItem()
+sealed class PortfolioItem {
+    data class Service(val data: ServiceResponse) : PortfolioItem()
+    data class Certificate(val data: CertificateResponse) : PortfolioItem()
+    data class Review(val data: RatingResponse) : PortfolioItem()
 }
 
-class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PortfolioAdapter(
+    private val onEditService: (ServiceResponse) -> Unit,
+    private val onDeleteCertificate: (CertificateResponse) -> Unit
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var items: List<CookProfileItem> = emptyList()
+    private var items: List<PortfolioItem> = emptyList()
 
     companion object {
         private const val TYPE_SERVICE = 0
-        private const val TYPE_REVIEW = 1
-        private const val TYPE_CERTIFICATE = 2
+        private const val TYPE_CERTIFICATE = 1
+        private const val TYPE_REVIEW = 2
     }
 
-    fun setItems(newItems: List<CookProfileItem>) {
+    fun setItems(newItems: List<PortfolioItem>) {
         items = newItems
         notifyDataSetChanged()
     }
 
     override fun getItemViewType(position: Int): Int {
         return when (items[position]) {
-            is CookProfileItem.Service -> TYPE_SERVICE
-            is CookProfileItem.Review -> TYPE_REVIEW
-            is CookProfileItem.Certificate -> TYPE_CERTIFICATE
+            is PortfolioItem.Service -> TYPE_SERVICE
+            is PortfolioItem.Certificate -> TYPE_CERTIFICATE
+            is PortfolioItem.Review -> TYPE_REVIEW
         }
     }
 
@@ -45,8 +49,8 @@ class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             TYPE_SERVICE -> ServiceViewHolder(ItemServiceBinding.inflate(inflater, parent, false))
-            TYPE_REVIEW -> ReviewViewHolder(ItemReviewBinding.inflate(inflater, parent, false))
             TYPE_CERTIFICATE -> CertificateViewHolder(ItemCertificateBinding.inflate(inflater, parent, false))
+            TYPE_REVIEW -> ReviewViewHolder(ItemReviewBinding.inflate(inflater, parent, false))
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -54,20 +58,20 @@ class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = items[position]
         when (holder) {
-            is ServiceViewHolder -> holder.bind((item as CookProfileItem.Service).data)
-            is ReviewViewHolder -> holder.bind((item as CookProfileItem.Review).data)
-            is CertificateViewHolder -> holder.bind((item as CookProfileItem.Certificate).data)
+            is ServiceViewHolder -> holder.bind((item as PortfolioItem.Service).data, onEditService)
+            is CertificateViewHolder -> holder.bind((item as PortfolioItem.Certificate).data, onDeleteCertificate)
+            is ReviewViewHolder -> holder.bind((item as PortfolioItem.Review).data)
         }
     }
 
     override fun getItemCount() = items.size
 
     class ServiceViewHolder(private val binding: ItemServiceBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(service: ServiceResponse) {
+        fun bind(service: ServiceResponse, onEdit: (ServiceResponse) -> Unit) {
             binding.apply {
                 tvServiceTitle.text = service.title
                 tvServingSize.text = "🍽 Serves ${service.servingSize}"
-                tvPrepTime.text = "⏱ ${service.estPrepTime} mins prep time"
+                tvPrepTime.text = "⏱ ${service.estPrepTime} mins"
                 tvPrice.text = "Php ${String.format("%,.0f", service.ingredientsCost)}"
                 
                 if (!service.imageUrl.isNullOrEmpty()) {
@@ -80,11 +84,40 @@ class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(
                     ivServiceImage.setImageResource(R.drawable.ramen)
                 }
 
-                btnViewDetails.setOnClickListener {
-                    val intent = android.content.Intent(itemView.context, edu.cit.auditor.paluto.MealDetailsActivity::class.java)
-                    intent.putExtra("SERVICE_ID", service.id)
-                    itemView.context.startActivity(intent)
+                btnViewDetails.text = "Edit"
+                btnViewDetails.setOnClickListener { onEdit(service) }
+            }
+        }
+    }
+
+    class CertificateViewHolder(private val binding: ItemCertificateBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(cert: CertificateResponse, onDelete: (CertificateResponse) -> Unit) {
+            binding.apply {
+                tvCertTitle.text = cert.title
+                
+                tvViewLink.paintFlags = tvViewLink.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
+                tvViewLink.setOnClickListener {
+                    if (!cert.fileUrl.isNullOrEmpty()) {
+                        val customTabsIntent = androidx.browser.customtabs.CustomTabsIntent.Builder()
+                            .setShowTitle(true)
+                            .build()
+                        customTabsIntent.launchUrl(itemView.context, android.net.Uri.parse(cert.fileUrl))
+                    }
                 }
+
+                tvRemoveLink.paintFlags = tvRemoveLink.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
+                tvRemoveLink.setOnClickListener { onDelete(cert) }
+
+                // Status Badge logic
+                val (bg, color) = when(cert.status.uppercase()) {
+                    "APPROVED" -> 0xFFD1E7DD.toInt() to 0xFF0A3622.toInt()
+                    "REJECTED" -> 0xFFF8D7DA.toInt() to 0xFF58151C.toInt()
+                    else -> 0xFFFFF3CD.toInt() to 0xFF856404.toInt() // PENDING
+                }
+                
+                tvStatus.text = cert.status.uppercase()
+                tvStatus.setTextColor(color)
+                tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(bg)
             }
         }
     }
@@ -95,24 +128,6 @@ class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(
                 tvCustomerName.text = review.customerName
                 tvStars.text = "★".repeat(review.rating) + "☆".repeat(5 - review.rating)
                 tvComment.text = review.comment
-            }
-        }
-    }
-
-    class CertificateViewHolder(private val binding: ItemCertificateBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(cert: CertificateResponse) {
-            binding.apply {
-                tvCertTitle.text = cert.title
-                tvViewLink.paintFlags = tvViewLink.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
-                
-                tvViewLink.setOnClickListener {
-                    if (!cert.fileUrl.isNullOrEmpty()) {
-                        val customTabsIntent = androidx.browser.customtabs.CustomTabsIntent.Builder()
-                            .setShowTitle(true)
-                            .build()
-                        customTabsIntent.launchUrl(itemView.context, android.net.Uri.parse(cert.fileUrl))
-                    }
-                }
             }
         }
     }
