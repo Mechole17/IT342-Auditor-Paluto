@@ -32,6 +32,16 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/google-login")
+    public ResponseEntity<ApiResponse<LoginDataResponseDTO>> googleLogin(@Valid @RequestBody GoogleLoginRequestDTO request) {
+        try {
+            LoginDataResponseDTO data = authService.authenticateGoogle(request);
+            return ResponseUtility.success(data, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("AUTH-002", "Google Authentication Failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<LoginDataResponseDTO>> getCurrentUser() {
         try {

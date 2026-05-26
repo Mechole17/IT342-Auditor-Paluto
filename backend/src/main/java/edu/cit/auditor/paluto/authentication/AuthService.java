@@ -1,5 +1,9 @@
 package edu.cit.auditor.paluto.authentication;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.core.entities.Customer;
 import edu.cit.auditor.paluto.core.entities.User;
@@ -9,13 +13,18 @@ import edu.cit.auditor.paluto.core.repositories.UserRepository;
 import edu.cit.auditor.paluto.infrastructure.security.JwtService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +35,44 @@ public class AuthService {
     private final JwtService jwtService; // Ensure you have a JwtService for tokens
     private final CustomerRepository customerRepository;
     private final CookRepository cookRepository;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
+    public LoginDataResponseDTO authenticateGoogle(GoogleLoginRequestDTO request) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(request.getIdToken());
+        if (idToken != null) {
+            GoogleIdToken.Payload payload = idToken.getPayload();
+
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String familyName = (String) payload.get("family_name");
+            String givenName = (String) payload.get("given_name");
+
+            Optional<User> userOptional = userRepository.findByEmail(email);
+
+            if (userOptional.isPresent()) {
+                return generateAuthResponse(userOptional.get());
+            } else {
+                // Return a partial response or a flag indicating registration is needed
+                // For now, let's return the user info so the frontend can proceed to register
+                return LoginDataResponseDTO.builder()
+                        .user(LoginDataResponseDTO.UserResponse.builder()
+                                .email(email)
+                                .firstname(givenName)
+                                .lastname(familyName)
+                                .build())
+                        .accessToken(null) // No token yet because they aren't in DB
+                        .build();
+            }
+        } else {
+            throw new RuntimeException("Invalid ID token");
+        }
+    }
 
     public LoginDataResponseDTO authenticate(LoginRequestDTO request) {
         // 1. Find user by email
