@@ -85,6 +85,9 @@ class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(
                     ivServiceImage.setImageResource(R.drawable.ramen)
                 }
 
+                // Explicitly hide delete button for visitors
+                btnDelete.visibility = android.view.View.GONE
+
                 btnViewDetails.setOnClickListener {
                     val intent = Intent(itemView.context, MealDetailsActivity::class.java)
                     intent.putExtra("SERVICE_ID", service.id)

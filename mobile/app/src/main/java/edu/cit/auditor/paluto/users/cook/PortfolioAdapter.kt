@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.Paint
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +25,7 @@ sealed class PortfolioItem {
 
 class PortfolioAdapter(
     private val onEditService: (ServiceResponse) -> Unit,
+    private val onDeleteService: (ServiceResponse) -> Unit,
     private val onDeleteCertificate: (CertificateResponse) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -61,7 +63,7 @@ class PortfolioAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = items[position]
         when (holder) {
-            is ServiceViewHolder -> holder.bind((item as PortfolioItem.Service).data, onEditService)
+            is ServiceViewHolder -> holder.bind((item as PortfolioItem.Service).data, onEditService, onDeleteService)
             is CertificateViewHolder -> holder.bind((item as PortfolioItem.Certificate).data, onDeleteCertificate)
             is ReviewViewHolder -> holder.bind((item as PortfolioItem.Review).data)
         }
@@ -70,7 +72,7 @@ class PortfolioAdapter(
     override fun getItemCount() = items.size
 
     class ServiceViewHolder(private val binding: ItemServiceBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(service: ServiceResponse, onEdit: (ServiceResponse) -> Unit) {
+        fun bind(service: ServiceResponse, onEdit: (ServiceResponse) -> Unit, onDelete: (ServiceResponse) -> Unit) {
             binding.apply {
                 tvServiceTitle.text = service.title
                 tvServingSize.text = "🍽 Serves ${service.servingSize}"
@@ -89,6 +91,9 @@ class PortfolioAdapter(
 
                 btnViewDetails.text = "Edit"
                 btnViewDetails.setOnClickListener { onEdit(service) }
+                
+                btnDelete.visibility = View.VISIBLE
+                btnDelete.setOnClickListener { onDelete(service) }
             }
         }
     }

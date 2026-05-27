@@ -55,10 +55,44 @@ class CookPortfolioFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = PortfolioAdapter(
             onEditService = { service -> showManageServiceDialog(service) },
+            onDeleteService = { service -> confirmDeleteService(service) },
             onDeleteCertificate = { cert -> confirmDeleteCertificate(cert) }
         )
         binding.rvPortfolio.layoutManager = LinearLayoutManager(context)
         binding.rvPortfolio.adapter = adapter
+    }
+
+    private fun confirmDeleteService(service: ServiceResponse) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Service")
+            .setMessage("Are you sure you want to delete '${service.title}'? This action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ -> deleteService(service.id) }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteService(id: Long) {
+        binding.progressBar.visibility = View.VISIBLE
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val res = RetrofitClient.instance.deleteService(id)
+                if (res.isSuccessful) {
+                    Toast.makeText(context, "Service deleted", Toast.LENGTH_SHORT).show()
+                    fetchData()
+                } else {
+                    val errorMsg = NetworkUtils.parseError(res)
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "Error deleting service", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                }
+            }
+        }
     }
 
     private fun setupTabs() {
@@ -160,9 +194,14 @@ class CookPortfolioFragment : Fragment() {
                 if (res.isSuccessful) {
                     Toast.makeText(context, "Certificate removed", Toast.LENGTH_SHORT).show()
                     fetchData()
+                } else {
+                    val errorMsg = NetworkUtils.parseError(res)
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Error deleting certificate", Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "Error deleting certificate", Toast.LENGTH_SHORT).show()
+                }
             } finally {
                 binding.progressBar.visibility = View.GONE
             }
