@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ratings/cook/**").permitAll()
                         .requestMatchers("/api/ratings/submit").hasAuthority("CUSTOMER")
                         .requestMatchers("/api/ratings/check/**").hasAuthority("CUSTOMER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasAuthority("COOK")
                         .anyRequest().authenticated()
                 )
 

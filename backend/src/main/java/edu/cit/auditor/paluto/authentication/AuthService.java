@@ -3,12 +3,14 @@ package edu.cit.auditor.paluto.authentication;
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.core.entities.Customer;
 import edu.cit.auditor.paluto.core.entities.User;
+import edu.cit.auditor.paluto.core.events.UserRegisteredEvent;
 import edu.cit.auditor.paluto.core.repositories.CookRepository;
 import edu.cit.auditor.paluto.core.repositories.CustomerRepository;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
 import edu.cit.auditor.paluto.infrastructure.security.JwtService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class AuthService {
     private final JwtService jwtService; // Ensure you have a JwtService for tokens
     private final CustomerRepository customerRepository;
     private final CookRepository cookRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public LoginDataResponseDTO authenticate(LoginRequestDTO request) {
         // 1. Find user by email
@@ -83,6 +86,8 @@ public class AuthService {
                     .build();
 
             cookRepository.save(newCook); // Saves to BOTH user and cook tables
+            eventPublisher.publishEvent(new UserRegisteredEvent(newCook));
+            System.out.println("Registration event successfully published for Cook: " + newCook.getEmail());
             return generateAuthResponse(newCook);
 
         } else {
@@ -99,6 +104,8 @@ public class AuthService {
                     .build();
 
             customerRepository.save(newCustomer);
+            eventPublisher.publishEvent(new UserRegisteredEvent(newCustomer));
+            System.out.println("Registration event successfully published for Cook: " + newCustomer.getEmail());
             return generateAuthResponse(newCustomer);
         }
     }

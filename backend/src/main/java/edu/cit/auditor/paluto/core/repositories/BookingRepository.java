@@ -27,4 +27,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Booking b WHERE b.status = 'COMPLETED'")
     BigDecimal sumTotalRevenueForCompletedBookings();
+
+    boolean existsByServiceIdAndStatusIn(Long serviceId, List<String> statuses);
 }

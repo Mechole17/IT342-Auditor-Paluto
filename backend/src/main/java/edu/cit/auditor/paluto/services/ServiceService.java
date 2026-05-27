@@ -3,6 +3,7 @@ package edu.cit.auditor.paluto.services;
 import edu.cit.auditor.paluto.core.entities.Cook;
 import edu.cit.auditor.paluto.core.entities.Service;
 import edu.cit.auditor.paluto.core.entities.User;
+import edu.cit.auditor.paluto.core.repositories.BookingRepository;
 import edu.cit.auditor.paluto.core.repositories.CookRepository;
 import edu.cit.auditor.paluto.core.repositories.ServiceRepository;
 import edu.cit.auditor.paluto.core.repositories.UserRepository;
@@ -18,15 +19,48 @@ public class ServiceService {
     private final ServiceRepository serviceRepository;
     private final CookRepository cookRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
-    public List<Service> getAllServices() {//needs to updae to return dto instead of entity
-        return serviceRepository.findAll();
+    public List<Service> getAllServices() {
+        return serviceRepository.findAll()
+                .stream()
+                .filter(s -> Boolean.TRUE.equals(s.getIsActive()))
+                .toList();
     }
 
     public ServiceResponseDTO getServiceById(Long id) {
         Service service = serviceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service not found."));
+
+        if (!Boolean.TRUE.equals(service.getIsActive())) {
+            throw new RuntimeException("Service not found.");
+        }
+
         return mapToDTO(service);
+    }
+
+    public void deleteService(Long serviceId, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        Service service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Service not found."));
+
+        if (!service.getCook().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized.");
+        }
+
+        // Check for active bookings
+        List<String> activeStatuses = List.of("PAID_PENDING", "ACCEPTED");
+        boolean hasActiveBookings = bookingRepository
+                .existsByServiceIdAndStatusIn(serviceId, activeStatuses);
+
+        if (hasActiveBookings) {
+            throw new RuntimeException("Cannot delete a service with active bookings.");
+        }
+
+        service.setIsActive(false);
+        serviceRepository.save(service);
     }
 
     // Helper method to convert Entity -> DTO and inject the Cook's Rate
@@ -87,6 +121,7 @@ public class ServiceService {
 
         return serviceRepository.findByCook(cook)
                 .stream()
+                .filter(s -> Boolean.TRUE.equals(s.getIsActive()))
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -97,6 +132,7 @@ public class ServiceService {
 
         return serviceRepository.findByCook(cook)
                 .stream()
+                .filter(s -> Boolean.TRUE.equals(s.getIsActive()))
                 .map(this::mapToDTO)
                 .toList();
     }
