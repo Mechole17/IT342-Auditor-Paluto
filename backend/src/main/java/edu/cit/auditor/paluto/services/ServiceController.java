@@ -78,6 +78,18 @@ public class ServiceController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteService(
+            @PathVariable Long id,
+            Authentication authentication) {
+        try {
+            serviceService.deleteService(id, authentication.getName());
+            return ResponseUtility.success("Service deleted.", HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtility.error("SRV-006", e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @GetMapping("/my-services")
     public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> getMyServices(Authentication authentication) {
         try {

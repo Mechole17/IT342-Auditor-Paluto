@@ -39,4 +39,7 @@ public class Service {
 
     @Transient // Not in DB, but shows in JSON
     private Double cookHourlyRate;
+
+    @Builder.Default
+    private Boolean isActive = true;
 }
