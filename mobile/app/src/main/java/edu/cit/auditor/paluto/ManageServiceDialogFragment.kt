@@ -83,6 +83,11 @@ class ManageServiceDialogFragment : DialogFragment() {
     }
 
     private fun submitForm() {
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val title = binding.etServiceTitle.text.toString().trim()
         val desc = binding.etDescription.text.toString().trim()
         val ing = binding.etIngredients.text.toString().trim()

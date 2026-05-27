@@ -68,6 +68,12 @@ class CookProfileActivity : AppCompatActivity() {
     }
 
     private fun fetchCookData() {
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+            binding.progressBar.visibility = View.GONE
+            return
+        }
+
         binding.progressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {

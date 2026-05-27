@@ -71,6 +71,14 @@ class CookPortfolioFragment : Fragment() {
     }
 
     private fun fetchData() {
+        val context = context ?: return
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            binding.tvEmpty.text = "No internet connection"
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.GONE
+            return
+        }
+
         val sharedPref = requireActivity().getSharedPreferences("PalutoPrefs", Context.MODE_PRIVATE)
         val userId = sharedPref.getLong("USER_ID", -1)
         if (userId == -1L) return
@@ -86,6 +94,8 @@ class CookPortfolioFragment : Fragment() {
                 val cRes = certsDef.await()
                 val rRes = reviewsDef.await()
 
+                if (_binding == null) return@launch
+
                 services = if (sRes.isSuccessful) sRes.body()?.data ?: emptyList() else emptyList()
                 certificates = if (cRes.isSuccessful) cRes.body()?.data ?: emptyList() else emptyList()
                 reviews = if (rRes.isSuccessful) rRes.body()?.data ?: emptyList() else emptyList()
@@ -94,9 +104,15 @@ class CookPortfolioFragment : Fragment() {
                 updateUIForTab(binding.tabLayout.selectedTabPosition)
 
             } catch (e: Exception) {
-                Toast.makeText(context, "Failed to load data", Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    if (e !is kotlinx.coroutines.CancellationException) {
+                        Toast.makeText(requireContext(), "Failed to load data", Toast.LENGTH_SHORT).show()
+                    }
+                }
             } finally {
-                binding.progressBar.visibility = View.GONE
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                }
             }
         }
     }

@@ -5,12 +5,15 @@ import android.content.Context
 
 class PalutoApp : Application() {
     override fun onCreate() {
-        super.onCreate()
         instance = this
+        super.onCreate()
     }
 
     companion object {
         private var instance: PalutoApp? = null
-        fun getContext(): Context = instance!!.applicationContext
+        
+        fun getContext(): Context {
+            return instance?.applicationContext ?: throw IllegalStateException("PalutoApp instance is null")
+        }
     }
 }

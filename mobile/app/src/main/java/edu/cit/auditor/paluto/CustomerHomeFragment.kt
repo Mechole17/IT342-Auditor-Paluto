@@ -49,10 +49,22 @@ class CustomerHomeFragment : Fragment() {
     }
 
     private fun fetchMeals() {
+        val context = context ?: return
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            binding.tvEmpty.text = "No internet connection"
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.GONE
+            return
+        }
+
         binding.progressBar.visibility = View.VISIBLE
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitClient.instance.getAllServices()
+                
+                // Safety check: Is the fragment still attached and visible?
+                if (_binding == null) return@launch
+                
                 binding.progressBar.visibility = View.GONE
                 
                 if (response.isSuccessful && response.body()?.success == true) {
@@ -61,12 +73,14 @@ class CustomerHomeFragment : Fragment() {
                     binding.tvEmpty.visibility = if (meals.isEmpty()) View.VISIBLE else View.GONE
                 } else {
                     val errorMsg = NetworkUtils.parseError(response)
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                if (e !is kotlinx.coroutines.CancellationException) {
-                    Toast.makeText(context, "Failed to connect to server", Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                    if (e !is kotlinx.coroutines.CancellationException) {
+                        Toast.makeText(requireContext(), "Failed to connect to server", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
