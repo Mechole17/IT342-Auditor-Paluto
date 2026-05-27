@@ -104,6 +104,7 @@ class CustomerRegistrationPageActivity : AppCompatActivity() {
                             putString("JWT_TOKEN", loginData.accessToken)
                             putString("USER_ROLE", "CUSTOMER") // We know they are a customer here
                             putString("USER_NAME", loginData.user.firstname)
+                            putString("USER_ADDRESS", loginData.user.address)
                             apply()
                         }
 

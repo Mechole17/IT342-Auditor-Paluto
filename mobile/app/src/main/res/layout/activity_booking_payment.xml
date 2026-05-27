@@ -242,20 +242,6 @@
                 android:inputType="textPostalAddress"
                 android:importantForAutofill="no" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Payment Method"
-                android:textSize="12sp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="4dp"
-                android:textColor="#555" />
-            <Spinner
-                android:id="@+id/spinnerPayment"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_round_input" />
-
         </LinearLayout>
     </ScrollView>
 

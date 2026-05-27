@@ -86,6 +86,7 @@ class CookRegistrationStep2Fragment : Fragment() {
                             putString("JWT_TOKEN", loginData.accessToken)
                             putString("USER_ROLE", "COOK")
                             putString("USER_NAME", loginData.user.firstname)
+                            putString("USER_ADDRESS", loginData.user.address)
                             apply()
                         }
 
