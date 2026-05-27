@@ -111,8 +111,11 @@ class CookProfileContentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(
         fun bind(cert: CertificateResponse) {
             binding.apply {
                 tvCertTitle.text = cert.title
-                tvViewLink.paintFlags = tvViewLink.paintFlags or Paint.UNDERLINE_TEXT_FLAG
                 
+                // Hide Remove link for visitors (customers/other cooks)
+                tvRemoveLink.visibility = android.view.View.GONE
+                
+                tvViewLink.paintFlags = tvViewLink.paintFlags or Paint.UNDERLINE_TEXT_FLAG
                 tvViewLink.setOnClickListener {
                     if (!cert.fileUrl.isNullOrEmpty()) {
                         val customTabsIntent = CustomTabsIntent.Builder()

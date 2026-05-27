@@ -1,6 +1,7 @@
 package edu.cit.auditor.paluto.payment
 
 import android.app.TimePickerDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -101,13 +102,13 @@ class BookingPaymentActivity : AppCompatActivity() {
                         error(R.drawable.ramen)
                     }
                 }
+                
+                // Pre-populate address from user details
+                val sharedPref = getSharedPreferences("PalutoPrefs", MODE_PRIVATE)
+                val userAddress = sharedPref.getString("USER_ADDRESS", "")
+                etAddress.setText(userAddress)
             }
         }
-
-        val adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_item, listOf("GCash", "Card"))
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerPayment.adapter = adapter
     }
 
     private fun calculateTotal() {

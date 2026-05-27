@@ -90,6 +90,7 @@ class LoginDialogFragment : DialogFragment() {
                             putString("USER_ROLE", role)
                             putString("USER_NAME", loginData.user.firstname)
                             putLong("USER_ID", loginData.user.id)
+                            putString("USER_ADDRESS", loginData.user.address)
                             apply()
                         }
 
