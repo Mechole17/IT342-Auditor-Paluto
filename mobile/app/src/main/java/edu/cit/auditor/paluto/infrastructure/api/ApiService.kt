@@ -148,7 +148,7 @@ interface ApiService {
     @DELETE("api/services/{id}")
     suspend fun deleteService(
         @Path("id") id: Long
-    ): Response<ApiResponse<Unit>>
+    ): Response<ApiResponse<String>>
 
     // Certificate Management
     @GET("api/certificates/my-certificates")

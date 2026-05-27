@@ -65,17 +65,39 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnViewDetails"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:backgroundTint="#F5A623"
-                android:text="View Details"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                app:cornerRadius="10dp" />
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnDelete"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Remove"
+                    android:textAllCaps="false"
+                    android:textColor="#D10B04"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    app:cornerRadius="10dp"
+                    app:strokeColor="#D10B04" />
+
+                <Button
+                    android:id="@+id/btnViewDetails"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.5"
+                    android:backgroundTint="#F5A623"
+                    android:text="View Details"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:cornerRadius="10dp" />
+            </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>
