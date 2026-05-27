@@ -169,6 +169,16 @@ export default function CookPortfolio() {
         } catch (err) { console.error("Failed to delete certificate", err); }
     };
 
+    const handleDeleteService = async (serviceId) => {
+        if (!window.confirm("Are you sure you want to delete this service?")) return;
+        try {
+            await axios.delete(`${API_BASE_URL}/api/services/${serviceId}`, { headers: { Authorization: `Bearer ${token}` } });
+            fetchServices();
+        } catch (err) {
+            alert(err.response?.data?.error?.message || "Failed to delete service.");
+        }
+    };
+
     const getStatusBadge = (status) => {
         const colors = { PENDING: { bg: '#fff3cd', color: '#856404' }, APPROVED: { bg: '#d1e7dd', color: '#0a3622' }, REJECTED: { bg: '#f8d7da', color: '#58151c' } };
         const style = colors[status] || colors.PENDING;
@@ -246,6 +256,10 @@ export default function CookPortfolio() {
                                         <button style={{ ...styles.addBtn, width: '100%', marginTop: '8px', fontSize: '13px', padding: '8px' }} onClick={() => handleEditClick(service)}>
                                             Edit
                                         </button>
+                                         <button
+                                            style={{ ...styles.addBtn, width: '100%', marginTop: '8px', fontSize: '13px', padding: '8px' , backgroundColor: '#d10b04' }}
+                                            onClick={() => handleDeleteService(service.id)}
+                                        >Remove</button>
                                     </div>
                                 </div>
                             ))}
