@@ -59,6 +59,14 @@ class CookDashboardFragment : Fragment() {
     }
 
     private fun fetchDashboardData() {
+        val context = context ?: return
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            binding.tvEmpty.text = "No internet connection"
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.GONE
+            return
+        }
+
         val sharedPref = requireActivity().getSharedPreferences("PalutoPrefs", Context.MODE_PRIVATE)
         val userId = sharedPref.getLong("USER_ID", -1)
 
@@ -73,6 +81,7 @@ class CookDashboardFragment : Fragment() {
                 val statsRes = statsDef.await()
                 val bookingsRes = bookingsDef.await()
 
+                if (_binding == null) return@launch
                 binding.progressBar.visibility = View.GONE
 
                 if (statsRes.isSuccessful && statsRes.body()?.success == true) {
@@ -87,9 +96,11 @@ class CookDashboardFragment : Fragment() {
                     binding.tvEmpty.visibility = if (activeBookings.isEmpty()) View.VISIBLE else View.GONE
                 }
             } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                if (e !is kotlinx.coroutines.CancellationException) {
-                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                    if (e !is kotlinx.coroutines.CancellationException) {
+                        Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }

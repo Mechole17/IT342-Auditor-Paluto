@@ -125,6 +125,8 @@ class BookingPaymentActivity : AppCompatActivity() {
     }
 
     private fun fetchBookedDates() {
+        if (!NetworkUtils.isNetworkAvailable(this)) return
+
         service?.let { s ->
             lifecycleScope.launch {
                 try {
@@ -179,6 +181,11 @@ class BookingPaymentActivity : AppCompatActivity() {
     }
 
     private fun handleCheckout() {
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val date = binding.etDate.text.toString()
         val time = binding.etTime.text.toString()
         val address = binding.etAddress.text.toString()

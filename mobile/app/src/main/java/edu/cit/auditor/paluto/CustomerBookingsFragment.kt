@@ -77,18 +77,22 @@ class CustomerBookingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitClient.instance.cancelBooking(bookingId)
+                
+                if (_binding == null) return@launch
                 binding.progressBar.visibility = View.GONE
+                
                 if (response.isSuccessful && response.body()?.success == true) {
-                    Toast.makeText(context, "Booking cancelled successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Booking cancelled successfully", Toast.LENGTH_SHORT).show()
                     fetchBookings()
                 } else {
                     val errorMsg = NetworkUtils.parseError(response)
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                e.printStackTrace()
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -111,6 +115,14 @@ class CustomerBookingsFragment : Fragment() {
     }
 
     private fun fetchBookings() {
+        val context = context ?: return
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            binding.tvEmpty.text = "No internet connection"
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.GONE
+            return
+        }
+
         val sharedPref = requireActivity().getSharedPreferences("PalutoPrefs", Context.MODE_PRIVATE)
         val userId = sharedPref.getLong("USER_ID", -1)
 
@@ -120,6 +132,8 @@ class CustomerBookingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitClient.instance.getCustomerBookings(userId)
+                
+                if (_binding == null) return@launch
                 binding.progressBar.visibility = View.GONE
 
                 if (response.isSuccessful && response.body()?.success == true) {
@@ -133,12 +147,14 @@ class CustomerBookingsFragment : Fragment() {
                     filterBookings(binding.tabLayout.getTabAt(binding.tabLayout.selectedTabPosition)?.text.toString())
                 } else {
                     val errorMsg = NetworkUtils.parseError(response)
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                if (e !is kotlinx.coroutines.CancellationException && e.message?.contains("cancelled", true) != true) {
-                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                    if (e !is kotlinx.coroutines.CancellationException && e.message?.contains("cancelled", true) != true) {
+                        Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
@@ -148,6 +164,9 @@ class CustomerBookingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitClient.instance.checkIfRated(bookingId)
+                
+                if (_binding == null) return@launch
+
                 if (response.isSuccessful && response.body()?.success == true) {
                     ratedMap[bookingId] = response.body()?.data ?: false
                     bookingAdapter.updateRatedMap(ratedMap)

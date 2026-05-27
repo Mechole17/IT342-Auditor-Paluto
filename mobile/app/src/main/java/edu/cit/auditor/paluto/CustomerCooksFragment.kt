@@ -44,11 +44,20 @@ class CustomerCooksFragment : Fragment() {
     }
 
     private fun fetchCooks() {
+        val context = context ?: return
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            binding.progressBar.visibility = View.GONE
+            return
+        }
+
         binding.progressBar.visibility = View.VISIBLE
         
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitClient.instance.getAllCooks()
+                
+                if (_binding == null) return@launch
                 binding.progressBar.visibility = View.GONE
                 
                 if (response.isSuccessful && response.body()?.success == true) {
@@ -56,11 +65,13 @@ class CustomerCooksFragment : Fragment() {
                     cookAdapter.updateCooks(cooks)
                 } else {
                     val errorMsg = NetworkUtils.parseError(response)
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                Toast.makeText(context, "Failed to connect to server", Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Failed to connect to server", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

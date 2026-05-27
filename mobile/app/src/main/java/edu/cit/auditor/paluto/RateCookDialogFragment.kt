@@ -57,6 +57,11 @@ class RateCookDialogFragment : DialogFragment() {
     }
 
     private fun submitRating() {
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val rating = binding.ratingBar.rating.toInt()
         val comment = binding.etComment.text.toString()
 

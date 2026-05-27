@@ -1,10 +1,28 @@
 package edu.cit.auditor.paluto.utils
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.google.gson.Gson
 import edu.cit.auditor.paluto.api.ApiResponse
 import retrofit2.Response
 
 object NetworkUtils {
+    /**
+     * Checks if the device has an active internet connection.
+     */
+    fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return when {
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
+        }
+    }
+
     /**
      * Parses the errorBody from a Retrofit Response into a readable message.
      * Can be used by any Activity or Fragment making API calls.

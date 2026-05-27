@@ -38,6 +38,11 @@ class LoginDialogFragment : DialogFragment() {
     }
 
     private fun performLogin() {
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val email = binding.etEmail.text.toString()
         val password = binding.etPassword.text.toString()
 

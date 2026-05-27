@@ -56,6 +56,11 @@ class UploadCertificateDialogFragment : DialogFragment() {
     }
 
     private fun submitForm() {
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val title = binding.etCertTitle.text.toString().trim()
 
         if (title.isEmpty() || selectedFileUri == null) {
